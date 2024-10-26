@@ -28,5 +28,7 @@ var bootstrapCmd = &cobra.Command{
 		if err := bootstrap.Init(); err != nil {
 			log.Fatalf("Bootstrap Service: Failed to Initialize. %v", err)
 		}
+
+		log.Println("Application exited successfully.")
 	},
 }
