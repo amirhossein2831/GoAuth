@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"GoAuth/cmd/app"
+	"GoAuth/src/config"
 	"github.com/spf13/cobra"
+	"log"
 )
 
 var rootCmd = &cobra.Command{
@@ -24,5 +26,8 @@ func Execute() error {
 }
 
 func initConfig() {
-	// put config needed fore cli command
+	err := config.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
