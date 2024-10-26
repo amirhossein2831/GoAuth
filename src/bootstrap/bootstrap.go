@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"GoAuth/src/api"
 	"context"
 	"log"
 	"os"
@@ -17,8 +18,28 @@ func Init() (err error) {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	log.Println("Application is starting...")
 
-	
+	// Initialize database
+	//err = database.Init()
+	//if err != nil {
+	//	log.Fatalf("Database Service: Failed to Initialize. %v", err)
+	//}
+	//log.Println("Database Service: Initialized Successfully.")
+	//
+	//defer func() {
+	//	if err = database.GetInstance().Close(); err != nil {
+	//		log.Fatalf("Failed to close database connection: %v", err)
+	//	}
+	//}()
 
+	//Initialize API
+	go func() {
+		err = api.Init()
+		if err != nil {
+			log.Printf("API Service: Failed to Initialize. %v", err)
+		}
+	}()
+
+	time.Sleep(50 * time.Millisecond)
 	log.Println("Application is now running.\nPress CTRL-C to exit")
 	<-sc
 
