@@ -5,12 +5,16 @@ import (
 	"net/http"
 )
 
+type IResponse interface {
+	Send()
+}
+
 type Response struct {
+	c            *gin.Context
 	IsSuccessful bool           `json:"is_successful"`
 	StatusCode   int            `json:"status_code"`
 	Message      string         `json:"message"`
 	Data         map[string]any `json:"data,omitempty"`
-	c            *gin.Context
 }
 
 // NewResponse initializes a new response builder with default values
