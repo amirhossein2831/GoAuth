@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"GoAuth/src/api"
+	"GoAuth/src/database"
 	"context"
 	"log"
 	"os"
@@ -19,17 +20,17 @@ func Init() (err error) {
 	log.Println("Application is starting...")
 
 	// Initialize database
-	//err = database.Init()
-	//if err != nil {
-	//	log.Fatalf("Database Service: Failed to Initialize. %v", err)
-	//}
-	//log.Println("Database Service: Initialized Successfully.")
-	//
-	//defer func() {
-	//	if err = database.GetInstance().Close(); err != nil {
-	//		log.Fatalf("Failed to close database connection: %v", err)
-	//	}
-	//}()
+	err = database.Init()
+	if err != nil {
+		log.Fatalf("Database Service: Failed to Initialize. %v", err)
+	}
+	log.Println("Database Service: Initialized Successfully.")
+	defer func() {
+		if err = database.GetInstance().Close(); err != nil {
+			log.Fatalf("Failed to close database connection: %v", err)
+		}
+		log.Println("Database Service: Database Close Successfully.")
+	}()
 
 	//Initialize API
 	go func() {
