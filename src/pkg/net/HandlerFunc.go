@@ -9,6 +9,6 @@ import (
 func HandlerFunc(handler func(*gin.Context) response.Response) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		res := handler(c)
-		res.Send(c)
+		res.Send()
 	}
 }
