@@ -1,0 +1,20 @@
+services:
+  # Postgres
+  postgres:
+    image: docker-repo.omaxplatform.com/postgres:alpine
+    container_name: postgres.${APP_NAME}
+    restart: unless-stopped
+    ports:
+      - ${DB_PORT:-5432}:5432
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      TZ: ${APP_TZ}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+
+
+volumes:
+  postgres-data:
