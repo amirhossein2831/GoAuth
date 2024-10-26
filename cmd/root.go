@@ -11,10 +11,6 @@ var rootCmd = &cobra.Command{
 	Long:  "Golang Authentication CLI",
 }
 
-func Execute() error {
-	return rootCmd.Execute()
-}
-
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -23,5 +19,10 @@ func init() {
 	)
 }
 
+func Execute() error {
+	return rootCmd.Execute()
+}
+
 func initConfig() {
+	// put config needed fore cli command
 }
