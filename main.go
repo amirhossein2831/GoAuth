@@ -1,5 +1,12 @@
 package main
 
+import (
+	"GoAuth/cmd"
+	"log"
+)
+
 func main() {
-	println("hello world")
+	if err := cmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
