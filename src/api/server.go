@@ -34,7 +34,7 @@ func initServer() error {
 	}
 
 	// Run App.
-	log.Println("API Service: Initialized Successfully.")
+	log.Printf("API Service: Server is Running on %s:%s.", os.Getenv("APP_HOST"), os.Getenv("APP_PORT"))
 	if err := router.Run(
 		fmt.Sprintf("%s:%s",
 			os.Getenv("APP_HOST"),
