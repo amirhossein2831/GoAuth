@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"GoAuth/src/Model"
 	"GoAuth/src/api"
 	"GoAuth/src/database"
 	"context"
@@ -31,6 +32,12 @@ func Init() (err error) {
 		}
 		log.Println("Database Service: Database Close Successfully.")
 	}()
+
+	err = database.GetInstance().GetClient().AutoMigrate(Model.User{})
+	if err != nil {
+		log.Fatalf("Database Service: Failed to Migrate. %v", err)
+	}
+	log.Println("Database Service: Database Migrate Successfully.")
 
 	//Initialize API
 	go func() {
