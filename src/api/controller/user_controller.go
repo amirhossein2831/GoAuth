@@ -4,6 +4,7 @@ import (
 	"GoAuth/src/pkg/response"
 	"GoAuth/src/services"
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -42,4 +43,18 @@ func (controller *UserController) Get(c *gin.Context) response.IResponse {
 		SetData(map[string]any{
 			"user": res,
 		})
+}
+
+func (controller *UserController) Delete(c *gin.Context) response.IResponse {
+	ctx := context.WithValue(context.Background(), "userId", c.Param("id"))
+	err := controller.Service.Delete(ctx)
+	if err != nil && errors.Is(err, services.UserNotFound) {
+		return response.NewResponse(c).SetStatusCode(http.StatusBadRequest).SetMessage(err.Error())
+	}
+
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetMessage("Cannot delete user")
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
 }

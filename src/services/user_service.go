@@ -8,12 +8,14 @@ import (
 	"strconv"
 )
 
-var UserIsNotLogin = errors.New("user is not login")
+var UserIdIsNotValid = errors.New("userId is not valid")
 var IdShouldBeNumeric = errors.New("user Id should be numeric")
+var UserNotFound = errors.New("user not found")
 
 type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
+	Delete(c context.Context) error
 }
 
 type UserService struct {
@@ -38,7 +40,7 @@ func (service *UserService) List(c context.Context) ([]models.Model, error) {
 func (service *UserService) Get(c context.Context) (models.Model, error) {
 	userId := c.Value("userId")
 	if userId == nil {
-		return nil, UserIsNotLogin
+		return nil, UserIdIsNotValid
 	}
 
 	id, err := strconv.Atoi(userId.(string))
@@ -52,4 +54,22 @@ func (service *UserService) Get(c context.Context) (models.Model, error) {
 	}
 
 	return res, nil
+}
+
+func (service *UserService) Delete(c context.Context) error {
+	userId := c.Value("userId")
+	if userId == nil {
+		return UserIdIsNotValid
+	}
+	id, err := strconv.Atoi(userId.(string))
+	if err != nil {
+		return IdShouldBeNumeric
+	}
+
+	user, err := service.Repository.Get(uint(id))
+	if err != nil {
+		return UserNotFound
+	}
+
+	return service.Repository.Delete(*user)
 }
