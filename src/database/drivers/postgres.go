@@ -16,42 +16,39 @@ type Postgres struct {
 	Database string
 	SSLMode  string
 	Timezone string
+	client   *gorm.DB
+	db       *sql.DB
 }
-
-var (
-	client *gorm.DB
-	db     *sql.DB
-)
 
 // Connect establishes new connection to database.
 func (postgres *Postgres) Connect() error {
-
+	var err error
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
 		postgres.Host, postgres.Port, postgres.Username,
 		postgres.Password, postgres.Database, postgres.SSLMode, postgres.Timezone,
 	)
 
-	client, err := gorm.Open(gormPsql.Open(dsn))
+	postgres.client, err = gorm.Open(gormPsql.Open(dsn))
 	if err != nil {
 		return err
 	}
 
-	db, _ = client.DB()
+	postgres.db, _ = postgres.client.DB()
 
 	return nil
 }
 
 // Close closes the connection to database.
 func (postgres *Postgres) Close() error {
-	return db.Close()
+	return postgres.db.Close()
 }
 
 // GetClient returns an instance of database.
 func (postgres *Postgres) GetClient() *gorm.DB {
-	return client
+	return postgres.client
 }
 
 // GetDB returns an instance of database.
 func (postgres *Postgres) GetDB() *sql.DB {
-	return db
+	return postgres.db
 }
