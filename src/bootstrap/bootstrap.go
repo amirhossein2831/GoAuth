@@ -1,9 +1,9 @@
 package bootstrap
 
 import (
-	"GoAuth/src/Model"
 	"GoAuth/src/api"
 	"GoAuth/src/database"
+	"GoAuth/src/models"
 	"context"
 	"log"
 	"os"
@@ -36,7 +36,7 @@ func Init() (err error) {
 	}()
 
 	// Migrate Models
-	err = database.GetInstance().GetClient().AutoMigrate(Model.Models()...)
+	err = database.GetInstance().GetClient().AutoMigrate(models.Models()...)
 	if err != nil {
 		log.Fatalf("Database Service: Failed to Migrate. %v", err)
 	}

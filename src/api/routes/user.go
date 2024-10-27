@@ -7,6 +7,9 @@ import (
 )
 
 func UserRoutes(router *gin.RouterGroup) {
-	userController := &controller.UserController{}
-	router.GET("users", net.HandlerFunc(userController.List))
+	userController := controller.NewUserController()
+	users := router.Group("users")
+
+	users.GET("", net.HandlerFunc(userController.List))
+	users.GET(":id", net.HandlerFunc(userController.Get))
 }
