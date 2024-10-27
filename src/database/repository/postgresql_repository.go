@@ -35,13 +35,13 @@ func (r *PostgresqlRepository[T]) Get(id uint) (*T, error) {
 }
 
 // Create method Create a models
-func (r *PostgresqlRepository[T]) Create(model T) error {
+func (r *PostgresqlRepository[T]) Create(model T) (*T, error) {
 	err := database.GetInstance().GetClient().Create(&model).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &model, err
 }
 
 // Update method Update a models

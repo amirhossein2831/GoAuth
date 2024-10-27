@@ -1,6 +1,7 @@
 package services
 
 import (
+	"GoAuth/src/api/request/user"
 	"GoAuth/src/database/repository"
 	"GoAuth/src/models"
 	"context"
@@ -15,6 +16,7 @@ var UserNotFound = errors.New("user not found")
 type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
+	Create(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
 }
 
@@ -49,6 +51,24 @@ func (service *UserService) Get(c context.Context) (models.Model, error) {
 	}
 
 	res, err := service.Repository.Get(uint(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (service *UserService) Create(c context.Context) (models.Model, error) {
+	req := c.Value("req").(*user.CreateUserRequest)
+
+	entity := models.User{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Password:  req.Password,
+	}
+
+	res, err := service.Repository.Create(entity)
 	if err != nil {
 		return nil, err
 	}
