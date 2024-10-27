@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"regexp"
 	"strings"
 )
@@ -13,4 +14,14 @@ func CamelToSnake(s string) string {
 	snake := re.ReplaceAllString(s, "${1}${3}_${2}${4}")
 	// Convert the whole string to lowercase.
 	return strings.ToLower(snake)
+}
+
+// GenerateSalt generates a new salt of the given length.
+func GenerateSalt(length uint32) ([]byte, error) {
+	salt := make([]byte, length)
+	_, err := rand.Read(salt)
+	if err != nil {
+		return nil, err
+	}
+	return salt, nil
 }
