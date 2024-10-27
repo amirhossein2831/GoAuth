@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"GoAuth/src/api"
 	"GoAuth/src/database"
+	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	"context"
 	"log"
@@ -41,6 +42,13 @@ func Init() (err error) {
 		log.Fatalf("Database Service: Failed to Migrate. %v", err)
 	}
 	log.Println("Database Service: Database Migrate Successfully.")
+
+	// Initialize HashPackage
+	err = hash.GetInstance().Init()
+	if err != nil {
+		log.Fatalf("Hash Service: Failed to Initialize. %v", err)
+	}
+	log.Println("Hash Service: Initialized Successfully.")
 
 	//Initialize API
 	go func() {
