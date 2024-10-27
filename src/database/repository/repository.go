@@ -9,7 +9,7 @@ type IRepository[T models.Model] interface {
 	List() ([]*T, error)
 	Get(id uint) (*T, error)
 	Create(model T) (*T, error)
-	Update(model T) error
+	Update(model T) (*T, error)
 	Delete(model T) error
 }
 

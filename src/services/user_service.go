@@ -17,6 +17,7 @@ type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
+	Update(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
 }
 
@@ -69,6 +70,35 @@ func (service *UserService) Create(c context.Context) (models.Model, error) {
 	}
 
 	res, err := service.Repository.Create(entity)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (service *UserService) Update(c context.Context) (models.Model, error) {
+	req := c.Value("req").(*user.UpdateUserRequest)
+
+	userToUpdate, err := service.Get(c)
+	if err != nil {
+		return nil, err
+	}
+
+	userModel := userToUpdate.(*models.User)
+	if req.FirstName != nil && *req.FirstName != "" {
+		userModel.FirstName = *req.FirstName
+	}
+
+	if req.LastName != nil && *req.LastName != "" {
+		userModel.LastName = *req.LastName
+	}
+
+	if req.Email != nil && *req.Email != "" {
+		userModel.LastName = *req.Email
+	}
+
+	res, err := service.Repository.Update(*userModel)
 	if err != nil {
 		return nil, err
 	}

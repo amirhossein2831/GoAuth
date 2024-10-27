@@ -13,5 +13,6 @@ func UserRoutes(router *gin.RouterGroup) {
 	users.GET("", net.HandlerFunc(userController.List))
 	users.GET(":id", net.HandlerFunc(userController.Get))
 	users.POST("", net.HandlerFunc(userController.Create))
+	users.PATCH(":id", net.HandlerFunc(userController.Update))
 	users.DELETE(":id", net.HandlerFunc(userController.Delete))
 }

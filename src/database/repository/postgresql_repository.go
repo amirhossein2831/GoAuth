@@ -45,13 +45,13 @@ func (r *PostgresqlRepository[T]) Create(model T) (*T, error) {
 }
 
 // Update method Update a models
-func (r *PostgresqlRepository[T]) Update(model T) error {
+func (r *PostgresqlRepository[T]) Update(model T) (*T, error) {
 	err := database.GetInstance().GetClient().Save(&model).Error
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &model, nil
 }
 
 // Delete method delete a models by its ID

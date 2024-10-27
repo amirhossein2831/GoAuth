@@ -69,6 +69,29 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 		})
 }
 
+func (controller *UserController) Update(c *gin.Context) response.IResponse {
+	var req *user.UpdateUserRequest
+	if err := c.ShouldBind(&req); err != nil {
+		return response.NewResponse(c)
+	}
+
+	if res := val.Validate(req); res != nil {
+		return response.NewResponse(c).SetData(res)
+	}
+
+	ctx := context.WithValue(context.Background(), "req", req)
+	ctx = context.WithValue(ctx, "userId", c.Param("id"))
+	res, err := controller.Service.Update(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetMessage("Cannot update user")
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusOK).
+		SetData(map[string]any{
+			"user": res,
+		})
+}
+
 func (controller *UserController) Delete(c *gin.Context) response.IResponse {
 	ctx := context.WithValue(context.Background(), "userId", c.Param("id"))
 	err := controller.Service.Delete(ctx)
