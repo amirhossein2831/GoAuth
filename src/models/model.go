@@ -11,7 +11,7 @@ func Models() []interface{} {
 	}
 }
 
-func ToModel[T Model](models []*T) []Model {
+func ToModel[T Model](models []T) []Model {
 	var all []Model
 	for _, model := range models {
 		all = append(all, model)
