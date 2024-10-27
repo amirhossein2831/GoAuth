@@ -26,6 +26,8 @@ func Init() (err error) {
 		log.Fatalf("Database Service: Failed to Initialize. %v", err)
 	}
 	log.Println("Database Service: Initialized Successfully.")
+
+	// Close Database
 	defer func() {
 		if err = database.GetInstance().Close(); err != nil {
 			log.Fatalf("Failed to close database connection: %v", err)
