@@ -33,6 +33,7 @@ func Init() (err error) {
 		log.Println("Database Service: Database Close Successfully.")
 	}()
 
+	// Migrate Models
 	err = database.GetInstance().GetClient().AutoMigrate(Model.Models()...)
 	if err != nil {
 		log.Fatalf("Database Service: Failed to Migrate. %v", err)
