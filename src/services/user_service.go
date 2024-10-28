@@ -13,6 +13,7 @@ var UserNotFound = errors.New("user not found")
 type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
+	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Update(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
@@ -41,6 +42,16 @@ func (service *UserService) Get(c context.Context) (models.Model, error) {
 	userId := c.Value("userId").(uint)
 
 	res, err := service.Repository.Get(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (service *UserService) GetByColumn(c context.Context) (models.Model, error) {
+	columns := c.Value("columns").(map[string]any)
+	res, err := service.Repository.GetByColumn(columns)
 	if err != nil {
 		return nil, err
 	}

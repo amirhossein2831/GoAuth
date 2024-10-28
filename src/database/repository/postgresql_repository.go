@@ -3,6 +3,7 @@ package repository
 import (
 	"GoAuth/src/database"
 	"GoAuth/src/models"
+	"fmt"
 )
 
 type PostgresqlRepository[T models.Model] struct{}
@@ -27,6 +28,23 @@ func (r *PostgresqlRepository[T]) List() ([]*T, error) {
 func (r *PostgresqlRepository[T]) Get(id uint) (*T, error) {
 	var model T
 	err := database.GetInstance().GetClient().First(&model, id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &model, nil
+}
+
+// GetByColumn retrieves a models by it's columns
+func (r *PostgresqlRepository[T]) GetByColumn(columns map[string]any) (*T, error) {
+	var model T
+
+	query := database.GetInstance().GetClient().Model(&model)
+
+	for key, value := range columns {
+		query = query.Where(fmt.Sprintf("%s = ?", key), value)
+	}
+	err := query.First(&model).Error
 	if err != nil {
 		return nil, err
 	}
