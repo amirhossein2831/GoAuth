@@ -6,6 +6,7 @@ import (
 	"GoAuth/src/services"
 	"context"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type AuthController struct {
@@ -31,7 +32,7 @@ func (authController *AuthController) Login(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetMessage(err.Error())
 	}
 
-	return response.NewResponse(c).SetData(
+	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(
 		map[string]interface{}{
 			"token": res,
 		})

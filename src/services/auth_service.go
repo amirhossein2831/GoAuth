@@ -19,22 +19,24 @@ type IAuthService interface {
 }
 
 type AuthService struct {
-	UserService IUserService
+	UserService  IUserService
+	TokenService ITokenService
 }
 
 func NewAuthService() *AuthService {
 	return &AuthService{
-		UserService: NewUserService(),
+		UserService:  NewUserService(),
+		TokenService: NewTokenService(),
 	}
 }
 
 func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	req := ctx.Value("req").(*auth.LoginRequest)
 
-	c := context.WithValue(ctx, "columns", map[string]any{
+	ctx = context.WithValue(ctx, "columns", map[string]any{
 		"email": req.Email,
 	})
-	user, err := service.UserService.GetByColumn(c)
+	user, err := service.UserService.GetByColumn(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +57,19 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	//TODO: Add token to user tokens
+	ctx = context.WithValue(ctx, "token", token)
+	ctx = context.WithValue(ctx, "userId", userModel.ID)
 
+	go service.createTokenAsync(ctx)
 	return token, nil
+}
+
+// createTokenAsync handles token creation in a separate goroutine
+func (service *AuthService) createTokenAsync(ctx context.Context) {
+	for {
+		_, err := service.TokenService.Create(ctx)
+		if err == nil {
+			break
+		}
+	}
 }
