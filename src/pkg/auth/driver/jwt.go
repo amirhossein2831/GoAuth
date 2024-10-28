@@ -20,14 +20,15 @@ type JWT struct {
 // JWTClaims defines the structure of the JWT claims.
 type JWTClaims struct {
 	jwt.RegisteredClaims
+	Email string `json:"email"`
 }
 
 // GenerateToken generates an access token and a refresh token.
-func (j *JWT) GenerateToken() (interface{}, error) {
+func (j *JWT) GenerateToken(email string) (interface{}, error) {
 	tokenUuid, _ := uuid.NewUUID()
 	accessTokenLifetime, _ := strconv.Atoi(os.Getenv("JWT_ACCESS_TOKEN_LIFETIME_SEC"))
 	accessTokenExpiresAt := time.Now().Add(time.Duration(accessTokenLifetime) * time.Second)
-	accessTokenString, err := generateToken(tokenUuid, accessTokenExpiresAt)
+	accessTokenString, err := generateToken(tokenUuid, accessTokenExpiresAt, email)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +36,7 @@ func (j *JWT) GenerateToken() (interface{}, error) {
 	// Generate refresh token
 	refreshTokenLifetime, _ := strconv.Atoi(os.Getenv("JWT_REFRESH_TOKEN_EXPIRATION_SEC"))
 	refreshTokenExpiresAt := time.Now().Add(time.Duration(refreshTokenLifetime) * time.Second)
-	refreshTokenString, err := generateToken(tokenUuid, refreshTokenExpiresAt)
+	refreshTokenString, err := generateToken(tokenUuid, refreshTokenExpiresAt, email)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (j *JWT) ValidateToken(tokenString string) (interface{}, error) {
 }
 
 // generateToken creates a token with a specified expiration duration.
-func generateToken(uuid uuid.UUID, expiresAt time.Time) (string, error) {
+func generateToken(uuid uuid.UUID, expiresAt time.Time, email string) (string, error) {
 	claims := &JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.String(),
@@ -83,6 +84,7 @@ func generateToken(uuid uuid.UUID, expiresAt time.Time) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
+		Email: email,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))

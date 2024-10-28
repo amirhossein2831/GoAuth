@@ -6,11 +6,12 @@ import (
 	"os"
 )
 
-var NotValidAuthDriver = errors.New("not a valid auth driver")
 var instance IAuth
 
+var NotValidAuthDriver = errors.New("not a valid auth driver")
+
 type IAuth interface {
-	GenerateToken() (interface{}, error)
+	GenerateToken(email string) (interface{}, error)
 	ValidateToken(token string) (interface{}, error)
 }
 
