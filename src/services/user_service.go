@@ -52,12 +52,7 @@ func (service *UserService) Get(c context.Context) (models.Model, error) {
 
 func (service *UserService) GetByColumn(c context.Context) (models.Model, error) {
 	columns := c.Value("columns").(map[string]any)
-	res, err := service.Repository.GetByColumn(columns)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return service.Repository.GetByColumn(columns)
 }
 
 func (service *UserService) Create(c context.Context) (models.Model, error) {
@@ -115,12 +110,10 @@ func (service *UserService) Update(c context.Context) (models.Model, error) {
 }
 
 func (service *UserService) Delete(c context.Context) error {
-	userId := c.Value("userId").(uint)
-
-	res, err := service.Repository.Get(userId)
+	res, err := service.Get(c)
 	if err != nil {
 		return UserNotFound
 	}
 
-	return service.Repository.Delete(*res)
+	return service.Repository.Delete(*res.(*models.User))
 }

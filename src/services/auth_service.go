@@ -76,7 +76,7 @@ func (service *AuthService) Register(ctx context.Context) (models.Model, error) 
 }
 
 func (service *AuthService) Logout(ctx context.Context) error {
-	return service.TokenService.Delete(ctx)
+	return service.TokenService.DeleteByColumn(ctx)
 }
 
 func (service *AuthService) Verify(ctx context.Context) (models.Model, error) {

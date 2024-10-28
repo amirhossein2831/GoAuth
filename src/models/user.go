@@ -12,7 +12,7 @@ type User struct {
 	LastName  string         `json:"last_name" gorm:"type:varchar(64);not null"`
 	Email     string         `json:"email" gorm:"type:varchar(64);not null;unique"`
 	Password  string         `json:"-" gorm:"type:varchar(255);not null"`
-	Tokens    []*Token       `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
+	Tokens    []*Token       `json:"-" gorm:"constraint:OnDelete:CASCADE;"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
