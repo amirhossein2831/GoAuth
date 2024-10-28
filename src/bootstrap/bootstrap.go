@@ -6,6 +6,7 @@ import (
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	"GoAuth/src/pkg/auth"
+	"GoAuth/src/scheduler"
 	"context"
 	"log"
 	"os"
@@ -57,6 +58,13 @@ func Init() (err error) {
 		log.Fatalf("Auth Service: Failed to Initialize. %v", err)
 	}
 	log.Println("Auth Service: Initialized Successfully.")
+
+	// Initialize scheduler
+	err = scheduler.Init()
+	if err != nil {
+		log.Fatalf("Scheduler Service: Failed to Initialize. %v", err)
+	}
+	log.Println("Scheduler Service: Initialized Successfully.")
 
 	//Initialize API
 	go func() {
