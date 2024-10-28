@@ -21,8 +21,7 @@ type JWT struct {
 // TODO: add client_id latter
 type JWTClaims struct {
 	jwt.RegisteredClaims
-	Email    string `json:"email"`
-	ClientId string `json:"client_id"`
+	Email string `json:"email"`
 }
 
 // GenerateToken generates an access token and a refresh token.

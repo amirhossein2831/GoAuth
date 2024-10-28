@@ -49,10 +49,13 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 		return nil, PasswordMismatch
 	}
 
+	// Generate Token
 	token, err := authenticator.GetInstance().GenerateToken(userModel.Email)
 	if err != nil {
 		return nil, err
 	}
+
+	//TODO: Add token to user tokens
 
 	return token, nil
 }
