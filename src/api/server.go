@@ -32,6 +32,7 @@ func initServer() error {
 	{
 		routes.UserRoutes(v1)
 		routes.AuthRoutes(v1)
+		routes.TokenRoutes(v1)
 	}
 
 	// Run App.
