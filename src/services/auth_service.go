@@ -16,6 +16,7 @@ var (
 
 type IAuthService interface {
 	Login(ctx context.Context) (interface{}, error)
+	Register(ctx context.Context) (models.Model, error)
 }
 
 type AuthService struct {
@@ -30,6 +31,7 @@ func NewAuthService() *AuthService {
 	}
 }
 
+// Login send token and let the user login
 func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	req := ctx.Value("req").(*auth.LoginRequest)
 
@@ -62,6 +64,10 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 
 	go service.createTokenAsync(ctx)
 	return token, nil
+}
+
+func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
+	return service.UserService.Create(ctx)
 }
 
 // createTokenAsync handles token creation in a separate goroutine

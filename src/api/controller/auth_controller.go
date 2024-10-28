@@ -3,6 +3,7 @@ package controller
 import (
 	"GoAuth/src/api/request/auth"
 	"GoAuth/src/pkg/response"
+	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
 	"context"
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func NewAuthController() *AuthController {
 	}
 }
 
-func (authController *AuthController) Login(c *gin.Context) response.IResponse {
+func (controller *AuthController) Login(c *gin.Context) response.IResponse {
 	var req *auth.LoginRequest
 	err := c.ShouldBind(&req)
 	if err != nil {
@@ -27,7 +28,7 @@ func (authController *AuthController) Login(c *gin.Context) response.IResponse {
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
-	res, err := authController.Service.Login(ctx)
+	res, err := controller.Service.Login(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err.Error())
 	}
@@ -38,4 +39,24 @@ func (authController *AuthController) Login(c *gin.Context) response.IResponse {
 		})
 }
 
-//func (authController *AuthController) Register(c *gin.Context) response.Response {}
+func (controller *AuthController) Register(c *gin.Context) response.IResponse {
+	var req *auth.RegisterRequest
+	if err := c.ShouldBind(&req); err != nil {
+		return response.NewResponse(c)
+	}
+
+	if res := val.Validate(req); res != nil {
+		return response.NewResponse(c).SetData(res)
+	}
+
+	ctx := context.WithValue(context.Background(), "req", req)
+	res, err := controller.Service.Register(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err.Error())
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusOK).
+		SetData(map[string]any{
+			"user": res,
+		})
+}
