@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"log"
+	"os"
 	"strconv"
 	"time"
 )
 
 func CleanUpToken() error {
-	delay := "100"
+	delay := os.Getenv("CLEAN_TOKEN_DURATION")
 	duration, err := strconv.Atoi(delay)
 	if err != nil {
-		duration = 86400
+		duration = 3600
 	}
 
 	c := cron.New()
