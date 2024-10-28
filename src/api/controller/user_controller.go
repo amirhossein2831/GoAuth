@@ -25,7 +25,7 @@ func (controller *UserController) List(c *gin.Context) response.IResponse {
 	ctx := context.Background()
 	res, err := controller.Service.List(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -37,13 +37,13 @@ func (controller *UserController) List(c *gin.Context) response.IResponse {
 func (controller *UserController) Get(c *gin.Context) response.IResponse {
 	id, err := utils.GetID(c.Param("id"))
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	ctx := context.WithValue(context.Background(), "userId", id)
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -65,7 +65,7 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 	ctx := context.WithValue(context.Background(), "req", req)
 	res, err := controller.Service.Create(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetMessage(err.Error())
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -77,7 +77,7 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	id, err := utils.GetID(c.Param("id"))
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	var req *user.UpdateUserRequest
@@ -93,7 +93,7 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	ctx = context.WithValue(ctx, "userId", id)
 	res, err := controller.Service.Update(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -105,13 +105,13 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 func (controller *UserController) Delete(c *gin.Context) response.IResponse {
 	id, err := utils.GetID(c.Param("id"))
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	ctx := context.WithValue(context.Background(), "userId", id)
 	err = controller.Service.Delete(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)

@@ -23,13 +23,13 @@ func (authController *AuthController) Login(c *gin.Context) response.IResponse {
 	var req *auth.LoginRequest
 	err := c.ShouldBind(&req)
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
 	res, err := authController.Service.Login(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(

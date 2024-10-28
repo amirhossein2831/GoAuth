@@ -13,7 +13,7 @@ type Response struct {
 	c            *gin.Context
 	IsSuccessful bool           `json:"is_successful"`
 	StatusCode   int            `json:"status_code"`
-	Message      string         `json:"message"`
+	Error        string         `json:"error"`
 	Data         map[string]any `json:"data,omitempty"`
 }
 
@@ -32,9 +32,9 @@ func (response *Response) SetStatusCode(statusCode int) *Response {
 	return response
 }
 
-// SetMessage sets the message of the response
-func (response *Response) SetMessage(message string) *Response {
-	response.Message = message
+// SetError sets the message of the response
+func (response *Response) SetError(message string) *Response {
+	response.Error = message
 	return response
 }
 
