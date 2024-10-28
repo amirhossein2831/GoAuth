@@ -81,7 +81,8 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	}
 
 	var req *user.UpdateUserRequest
-	if err := c.ShouldBind(&req); err != nil {
+	err = c.ShouldBind(&req)
+	if err != nil {
 		return response.NewResponse(c)
 	}
 
