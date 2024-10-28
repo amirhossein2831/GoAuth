@@ -6,11 +6,8 @@ import (
 	"GoAuth/src/models"
 	"context"
 	"errors"
-	"strconv"
 )
 
-var UserIdIsNotValid = errors.New("userId is not valid")
-var IdShouldBeNumeric = errors.New("user Id should be numeric")
 var UserNotFound = errors.New("user not found")
 
 type IUserService interface {
@@ -41,17 +38,9 @@ func (service *UserService) List(c context.Context) ([]models.Model, error) {
 }
 
 func (service *UserService) Get(c context.Context) (models.Model, error) {
-	userId := c.Value("userId")
-	if userId == nil {
-		return nil, UserIdIsNotValid
-	}
+	userId := c.Value("userId").(uint)
 
-	id, err := strconv.Atoi(userId.(string))
-	if err != nil {
-		return nil, IdShouldBeNumeric
-	}
-
-	res, err := service.Repository.Get(uint(id))
+	res, err := service.Repository.Get(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -107,19 +96,12 @@ func (service *UserService) Update(c context.Context) (models.Model, error) {
 }
 
 func (service *UserService) Delete(c context.Context) error {
-	userId := c.Value("userId")
-	if userId == nil {
-		return UserIdIsNotValid
-	}
-	id, err := strconv.Atoi(userId.(string))
-	if err != nil {
-		return IdShouldBeNumeric
-	}
+	userId := c.Value("userId").(uint)
 
-	user, err := service.Repository.Get(uint(id))
+	res, err := service.Repository.Get(userId)
 	if err != nil {
 		return UserNotFound
 	}
 
-	return service.Repository.Delete(*user)
+	return service.Repository.Delete(*res)
 }

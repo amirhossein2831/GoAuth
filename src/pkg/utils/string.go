@@ -2,9 +2,14 @@ package utils
 
 import (
 	"crypto/rand"
+	"errors"
 	"regexp"
+	"strconv"
 	"strings"
 )
+
+var ParamDoesNotExit = errors.New("path param does not exist")
+var ParamShouldBeNumeric = errors.New("path param should be numeric")
 
 // CamelToSnake converts a camel case string to snake case.
 func CamelToSnake(s string) string {
@@ -24,4 +29,17 @@ func GenerateSalt(length uint32) ([]byte, error) {
 		return nil, err
 	}
 	return salt, nil
+}
+
+func GetID(param string) (uint, error) {
+	if param == "" {
+		return 0, ParamDoesNotExit
+	}
+	println("param:", param)
+	id, err := strconv.Atoi(param)
+	if err != nil {
+		return 0, ParamShouldBeNumeric
+	}
+
+	return uint(id), nil
 }
