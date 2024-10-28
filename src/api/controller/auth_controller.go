@@ -2,6 +2,7 @@ package controller
 
 import (
 	"GoAuth/src/api/request/auth"
+	"GoAuth/src/api/request/user"
 	"GoAuth/src/pkg/response"
 	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
@@ -44,7 +45,7 @@ func (controller *AuthController) Login(c *gin.Context) response.IResponse {
 }
 
 func (controller *AuthController) Register(c *gin.Context) response.IResponse {
-	var req *auth.RegisterRequest
+	var req *user.CreateUserRequest
 	if err := c.ShouldBind(&req); err != nil {
 		return response.NewResponse(c)
 	}
