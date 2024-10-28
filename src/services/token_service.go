@@ -5,10 +5,16 @@ import (
 	"GoAuth/src/models"
 	"GoAuth/src/pkg/auth/driver"
 	"context"
+	"errors"
 )
 
+var TokenNotFound = errors.New("token not found")
+
 type ITokenService interface {
+	List(c context.Context) ([]models.Model, error)
+	Get(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
+	Delete(c context.Context) error
 }
 
 type TokenService struct {
@@ -19,6 +25,26 @@ func NewTokenService() *TokenService {
 	return &TokenService{
 		Repository: repository.GetRepository[models.Token](),
 	}
+}
+
+func (service *TokenService) List(c context.Context) ([]models.Model, error) {
+	all, err := service.Repository.List()
+	if err != nil {
+		return nil, err
+	}
+
+	return models.ToModel(all), nil
+}
+
+func (service *TokenService) Get(c context.Context) (models.Model, error) {
+	id := c.Value("tokenId").(uint)
+
+	res, err := service.Repository.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (service *TokenService) Create(c context.Context) (models.Model, error) {
@@ -42,4 +68,17 @@ func (service *TokenService) Create(c context.Context) (models.Model, error) {
 	}
 
 	return res, nil
+}
+
+func (service *TokenService) Delete(c context.Context) error {
+	token := c.Value("token").(string)
+
+	res, err := service.Repository.GetByColumn(map[string]any{
+		"access_token": token,
+	})
+	if err != nil {
+		return TokenNotFound
+	}
+
+	return service.Repository.HardDelete(*res)
 }

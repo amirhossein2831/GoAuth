@@ -6,9 +6,13 @@ import (
 	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
+
+var TokenIsMissed = errors.New("token is not given")
 
 type AuthController struct {
 	Service services.IAuthService
@@ -59,4 +63,19 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 		SetData(map[string]any{
 			"user": res,
 		})
+}
+
+func (controller *AuthController) Logout(c *gin.Context) response.IResponse {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return response.NewResponse(c).SetError(TokenIsMissed.Error())
+	}
+
+	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+	err := controller.Service.Logout(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err.Error())
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
 }

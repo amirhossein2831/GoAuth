@@ -12,4 +12,5 @@ func AuthRoutes(router *gin.RouterGroup) {
 
 	auth.POST("login", net.HandlerFunc(authController.Login))
 	//auth.POST(":id", net.HandlerFunc(authController.Get))
+	auth.GET("logout", net.HandlerFunc(authController.Logout))
 }
