@@ -7,10 +7,11 @@ import (
 
 type User struct {
 	gorm.Model
-	FirstName string `json:"first_name" gorm:"type:varchar(64);not null"`
-	LastName  string `json:"last_name" gorm:"type:varchar(64);not null"`
-	Email     string `json:"email" gorm:"type:varchar(64);not null"`
-	Password  string `json:"-" gorm:"type:varchar(255);not null"`
+	FirstName string   `json:"first_name" gorm:"type:varchar(64);not null"`
+	LastName  string   `json:"last_name" gorm:"type:varchar(64);not null"`
+	Email     string   `json:"email" gorm:"type:varchar(64);not null"`
+	Password  string   `json:"-" gorm:"type:varchar(255);not null"`
+	Tokens    []*Token `json:"tokens" gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func (user User) TableName() string {
