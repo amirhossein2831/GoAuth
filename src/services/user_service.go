@@ -9,10 +9,12 @@ import (
 )
 
 var UserNotFound = errors.New("user not found")
+var EmailShouldBeUnique = errors.New("email should be unique")
 
 type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
+	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Update(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
@@ -48,8 +50,20 @@ func (service *UserService) Get(c context.Context) (models.Model, error) {
 	return res, nil
 }
 
+func (service *UserService) GetByColumn(c context.Context) (models.Model, error) {
+	columns := c.Value("columns").(map[string]any)
+	return service.Repository.GetByColumn(columns)
+}
+
 func (service *UserService) Create(c context.Context) (models.Model, error) {
 	req := c.Value("req").(*user.CreateUserRequest)
+
+	_, err := service.Repository.GetByColumn(map[string]any{
+		"email": req.Email,
+	})
+	if err == nil {
+		return nil, EmailShouldBeUnique
+	}
 
 	entity := models.User{
 		FirstName: req.FirstName,
@@ -96,12 +110,10 @@ func (service *UserService) Update(c context.Context) (models.Model, error) {
 }
 
 func (service *UserService) Delete(c context.Context) error {
-	userId := c.Value("userId").(uint)
-
-	res, err := service.Repository.Get(userId)
+	res, err := service.Get(c)
 	if err != nil {
 		return UserNotFound
 	}
 
-	return service.Repository.Delete(*res)
+	return service.Repository.Delete(*res.(*models.User))
 }

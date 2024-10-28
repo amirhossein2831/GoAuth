@@ -7,7 +7,6 @@ import (
 	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
 	"context"
-	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -26,7 +25,7 @@ func (controller *UserController) List(c *gin.Context) response.IResponse {
 	ctx := context.Background()
 	res, err := controller.Service.List(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage("Cannot get List of users")
+		return response.NewResponse(c).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -38,13 +37,13 @@ func (controller *UserController) List(c *gin.Context) response.IResponse {
 func (controller *UserController) Get(c *gin.Context) response.IResponse {
 	id, err := utils.GetID(c.Param("id"))
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err)
 	}
 
 	ctx := context.WithValue(context.Background(), "userId", id)
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage("Cannot get user")
+		return response.NewResponse(c).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -66,7 +65,7 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 	ctx := context.WithValue(context.Background(), "req", req)
 	res, err := controller.Service.Create(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetMessage("Cannot create user")
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -78,11 +77,12 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	id, err := utils.GetID(c.Param("id"))
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err)
 	}
 
 	var req *user.UpdateUserRequest
-	if err := c.ShouldBind(&req); err != nil {
+	err = c.ShouldBind(&req)
+	if err != nil {
 		return response.NewResponse(c)
 	}
 
@@ -94,7 +94,7 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	ctx = context.WithValue(ctx, "userId", id)
 	res, err := controller.Service.Update(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage("Cannot update user")
+		return response.NewResponse(c).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -106,17 +106,13 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 func (controller *UserController) Delete(c *gin.Context) response.IResponse {
 	id, err := utils.GetID(c.Param("id"))
 	if err != nil {
-		return response.NewResponse(c).SetMessage(err.Error())
+		return response.NewResponse(c).SetError(err)
 	}
 
 	ctx := context.WithValue(context.Background(), "userId", id)
 	err = controller.Service.Delete(ctx)
-	if err != nil && errors.Is(err, services.UserNotFound) {
-		return response.NewResponse(c).SetMessage(err.Error())
-	}
-
 	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetMessage("Cannot delete user")
+		return response.NewResponse(c).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)

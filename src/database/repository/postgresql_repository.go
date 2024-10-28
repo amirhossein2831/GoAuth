@@ -3,6 +3,7 @@ package repository
 import (
 	"GoAuth/src/database"
 	"GoAuth/src/models"
+	"fmt"
 )
 
 type PostgresqlRepository[T models.Model] struct{}
@@ -34,6 +35,23 @@ func (r *PostgresqlRepository[T]) Get(id uint) (*T, error) {
 	return &model, nil
 }
 
+// GetByColumn retrieves a models by it's columns
+func (r *PostgresqlRepository[T]) GetByColumn(columns map[string]any) (*T, error) {
+	var model T
+
+	query := database.GetInstance().GetClient().Model(&model)
+
+	for key, value := range columns {
+		query = query.Where(fmt.Sprintf("%s = ?", key), value)
+	}
+	err := query.First(&model).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &model, nil
+}
+
 // Create method Create a models
 func (r *PostgresqlRepository[T]) Create(model T) (*T, error) {
 	err := database.GetInstance().GetClient().Create(&model).Error
@@ -57,6 +75,16 @@ func (r *PostgresqlRepository[T]) Update(model T) (*T, error) {
 // Delete method delete a models by its ID
 func (r *PostgresqlRepository[T]) Delete(model T) error {
 	err := database.GetInstance().GetClient().Delete(&model).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// HardDelete method that  delete a models by its ID hardly
+func (r *PostgresqlRepository[T]) HardDelete(model T) error {
+	err := database.GetInstance().GetClient().Unscoped().Delete(&model).Error
 	if err != nil {
 		return err
 	}

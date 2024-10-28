@@ -31,6 +31,8 @@ func initServer() error {
 	v1 := router.Group("api/v1")
 	{
 		routes.UserRoutes(v1)
+		routes.AuthRoutes(v1)
+		routes.TokenRoutes(v1)
 	}
 
 	// Run App.

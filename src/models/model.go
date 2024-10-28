@@ -8,6 +8,7 @@ type Model interface {
 func Models() []interface{} {
 	return []interface{}{
 		User{},
+		Token{},
 	}
 }
 
