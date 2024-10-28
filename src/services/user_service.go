@@ -9,6 +9,7 @@ import (
 )
 
 var UserNotFound = errors.New("user not found")
+var EmailShouldBeUnique = errors.New("email should be unique")
 
 type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
@@ -61,6 +62,13 @@ func (service *UserService) GetByColumn(c context.Context) (models.Model, error)
 
 func (service *UserService) Create(c context.Context) (models.Model, error) {
 	req := c.Value("req").(*user.CreateUserRequest)
+
+	_, err := service.Repository.GetByColumn(map[string]any{
+		"email": req.Email,
+	})
+	if err == nil {
+		return nil, EmailShouldBeUnique
+	}
 
 	entity := models.User{
 		FirstName: req.FirstName,

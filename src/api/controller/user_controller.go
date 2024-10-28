@@ -25,7 +25,7 @@ func (controller *UserController) List(c *gin.Context) response.IResponse {
 	ctx := context.Background()
 	res, err := controller.Service.List(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage("Cannot get List of users")
+		return response.NewResponse(c).SetMessage(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -43,7 +43,7 @@ func (controller *UserController) Get(c *gin.Context) response.IResponse {
 	ctx := context.WithValue(context.Background(), "userId", id)
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage("Cannot get user")
+		return response.NewResponse(c).SetMessage(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -65,7 +65,7 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 	ctx := context.WithValue(context.Background(), "req", req)
 	res, err := controller.Service.Create(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetMessage("Cannot create user")
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetMessage(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -93,7 +93,7 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	ctx = context.WithValue(ctx, "userId", id)
 	res, err := controller.Service.Update(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetMessage("Cannot update user")
+		return response.NewResponse(c).SetMessage(err.Error())
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
