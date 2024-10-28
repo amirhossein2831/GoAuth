@@ -14,6 +14,7 @@ var InvalidTokenType = errors.New("token Type is invalid")
 type ITokenService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
+	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
 }
@@ -48,6 +49,14 @@ func (service *TokenService) Get(c context.Context) (models.Model, error) {
 	return res, nil
 }
 
+func (service *TokenService) GetByColumn(c context.Context) (models.Model, error) {
+	token := c.Value("token").(string)
+
+	return service.Repository.GetByColumn(map[string]any{
+		"access_token": token,
+	})
+}
+
 func (service *TokenService) Create(c context.Context) (models.Model, error) {
 	req := c.Value("token")
 	userId := c.Value("userId").(uint)
@@ -74,14 +83,10 @@ func (service *TokenService) Create(c context.Context) (models.Model, error) {
 }
 
 func (service *TokenService) Delete(c context.Context) error {
-	token := c.Value("token").(string)
-
-	res, err := service.Repository.GetByColumn(map[string]any{
-		"access_token": token,
-	})
+	res, err := service.GetByColumn(c)
 	if err != nil {
 		return TokenNotFound
 	}
 
-	return service.Repository.HardDelete(*res)
+	return service.Repository.HardDelete(*res.(*models.Token))
 }

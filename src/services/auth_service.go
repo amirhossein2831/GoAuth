@@ -14,6 +14,7 @@ var (
 	AuthenticateFailed = errors.New("authentication failed")
 	PasswordMismatch   = errors.New("password does not match")
 	InvalidClaimType   = errors.New("claim type is not valid")
+	TokenIsNotExits    = errors.New("token is not exits")
 )
 
 type IAuthService interface {
@@ -80,6 +81,13 @@ func (service *AuthService) Logout(ctx context.Context) error {
 
 func (service *AuthService) Verify(ctx context.Context) (models.Model, error) {
 	token := ctx.Value("token").(string)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
+
+	_, err := service.TokenService.GetByColumn(ctx)
+	if err != nil {
+		return nil, TokenIsNotExits
+	}
+
 	claim, err := authenticator.GetInstance().ValidateToken(token)
 	if err != nil {
 		return nil, err
@@ -88,9 +96,7 @@ func (service *AuthService) Verify(ctx context.Context) (models.Model, error) {
 	switch claim.(type) {
 	case *driver.JWTClaims:
 		claimModel := claim.(*driver.JWTClaims)
-		ctx = context.WithValue(ctx, "columns", map[string]any{
-			"email": claimModel.Email,
-		})
+		ctx = context.WithValue(ctx, "columns", map[string]any{"email": claimModel.Email})
 	default:
 		return nil, InvalidClaimType
 	}
