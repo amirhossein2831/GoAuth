@@ -5,6 +5,7 @@ import (
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	authenticator "GoAuth/src/pkg/auth"
+	"GoAuth/src/pkg/auth/driver"
 	"context"
 	"errors"
 )
@@ -12,12 +13,14 @@ import (
 var (
 	AuthenticateFailed = errors.New("authentication failed")
 	PasswordMismatch   = errors.New("password does not match")
+	InvalidClaimType   = errors.New("claim type is not valid")
 )
 
 type IAuthService interface {
 	Login(ctx context.Context) (interface{}, error)
 	Register(ctx context.Context) (models.Model, error)
 	Logout(ctx context.Context) error
+	Verify(ctx context.Context) (models.Model, error)
 }
 
 type AuthService struct {
@@ -73,6 +76,31 @@ func (service *AuthService) Register(ctx context.Context) (models.Model, error) 
 
 func (service *AuthService) Logout(ctx context.Context) error {
 	return service.TokenService.Delete(ctx)
+}
+
+func (service *AuthService) Verify(ctx context.Context) (models.Model, error) {
+	token := ctx.Value("token").(string)
+	claim, err := authenticator.GetInstance().ValidateToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	switch claim.(type) {
+	case *driver.JWTClaims:
+		claimModel := claim.(*driver.JWTClaims)
+		ctx = context.WithValue(ctx, "columns", map[string]any{
+			"email": claimModel.Email,
+		})
+	default:
+		return nil, InvalidClaimType
+	}
+
+	res, err := service.UserService.GetByColumn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 // createTokenAsync handles token creation in a separate goroutine

@@ -9,6 +9,7 @@ import (
 )
 
 var TokenNotFound = errors.New("token not found")
+var InvalidTokenType = errors.New("token Type is invalid")
 
 type ITokenService interface {
 	List(c context.Context) ([]models.Model, error)
@@ -60,6 +61,8 @@ func (service *TokenService) Create(c context.Context) (models.Model, error) {
 		token.RefreshToken = jwtToken.RefreshTokenString
 		token.AccessTokenExpiresAt = jwtToken.AccessTokenExpiresAt
 		token.RefreshTokenExpiresAt = jwtToken.RefreshTokenExpiresAt
+	default:
+		return nil, InvalidTokenType
 	}
 
 	res, err := service.Repository.Create(token)
