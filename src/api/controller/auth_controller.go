@@ -29,13 +29,13 @@ func (controller *AuthController) Login(c *gin.Context) response.IResponse {
 	var req *auth.LoginRequest
 	err := c.ShouldBind(&req)
 	if err != nil {
-		return response.NewResponse(c).SetError(err.Error())
+		return response.NewResponse(c).SetError(err)
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
 	res, err := controller.Service.Login(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetError(err.Error())
+		return response.NewResponse(c).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(
@@ -57,7 +57,7 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 	ctx := context.WithValue(context.Background(), "req", req)
 	res, err := controller.Service.Register(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err.Error())
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).
@@ -69,13 +69,13 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 func (controller *AuthController) Logout(c *gin.Context) response.IResponse {
 	accessToken := c.GetHeader("Authorization")
 	if accessToken == "" {
-		return response.NewResponse(c).SetError(TokenIsMissed.Error())
+		return response.NewResponse(c).SetError(TokenIsMissed)
 	}
 
 	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
 	err := controller.Service.Logout(ctx)
 	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err.Error())
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)

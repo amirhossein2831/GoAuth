@@ -33,8 +33,8 @@ func (response *Response) SetStatusCode(statusCode int) *Response {
 }
 
 // SetError sets the message of the response
-func (response *Response) SetError(message string) *Response {
-	response.Error = message
+func (response *Response) SetError(err error) *Response {
+	response.Error = err.Error()
 	return response
 }
 
