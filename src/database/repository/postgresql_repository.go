@@ -81,3 +81,13 @@ func (r *PostgresqlRepository[T]) Delete(model T) error {
 
 	return nil
 }
+
+// HardDelete method that  delete a models by its ID hardly
+func (r *PostgresqlRepository[T]) HardDelete(model T) error {
+	err := database.GetInstance().GetClient().Unscoped().Delete(&model).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

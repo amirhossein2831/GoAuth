@@ -12,6 +12,7 @@ type IRepository[T models.Model] interface {
 	Create(model T) (*T, error)
 	Update(model T) (*T, error)
 	Delete(model T) error
+	HardDelete(model T) error
 }
 
 func GetRepository[T models.Model]() IRepository[T] {
