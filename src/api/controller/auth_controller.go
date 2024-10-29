@@ -33,6 +33,7 @@ func (controller *AuthController) Login(c *gin.Context) response.IResponse {
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
+
 	res, err := controller.Service.Login(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -50,11 +51,12 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 		return response.NewResponse(c)
 	}
 
-	if res := val.Validate(req); res != nil {
-		return response.NewResponse(c).SetData(res)
+	if err := val.Validate(req); err != nil {
+		return response.NewResponse(c).SetData(err)
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
+
 	res, err := controller.Service.Register(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -88,6 +90,7 @@ func (controller *AuthController) Verify(c *gin.Context) response.IResponse {
 	}
 
 	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+
 	res, err := controller.Service.Verify(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -106,6 +109,7 @@ func (controller *AuthController) Profile(c *gin.Context) response.IResponse {
 	}
 
 	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+
 	res, err := controller.Service.Profile(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -114,4 +118,30 @@ func (controller *AuthController) Profile(c *gin.Context) response.IResponse {
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(map[string]interface{}{
 		"user": res,
 	})
+}
+
+func (controller *AuthController) ChangePassword(c *gin.Context) response.IResponse {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return response.NewResponse(c).SetError(TokenIsMissed)
+	}
+
+	var req *auth.ChangePasswordRequest
+	if err := c.ShouldBind(&req); err != nil {
+		return response.NewResponse(c)
+	}
+
+	if err := val.Validate(req); err != nil {
+		return response.NewResponse(c).SetData(err)
+	}
+
+	ctx := context.WithValue(context.Background(), "req", req)
+	ctx = context.WithValue(ctx, "token", strings.TrimPrefix(accessToken, "Bearer "))
+
+	err := controller.Service.ChangePassword(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
 }

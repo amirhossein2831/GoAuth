@@ -21,6 +21,7 @@ type IAuthService interface {
 	Profile(ctx context.Context) (models.Model, error)
 	Verify(ctx context.Context) (interface{}, error)
 	Logout(ctx context.Context) error
+	ChangePassword(ctx context.Context) error
 }
 
 type AuthService struct {
@@ -106,6 +107,30 @@ func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
 
 	ctx = context.WithValue(ctx, "userId", tokenModel.(*models.Token).UserId)
 	return service.UserService.Get(ctx)
+}
+
+func (service *AuthService) ChangePassword(ctx context.Context) error {
+	user, err := service.Profile(ctx)
+	if err != nil {
+		return err
+	}
+
+	req := ctx.Value("req").(*auth.ChangePasswordRequest)
+	userModel := user.(*models.User)
+
+	ok, err := hash.VerifyStoredHash([]byte(userModel.Password), req.OldPassword)
+	if err != nil {
+		return AuthenticateFailed
+	}
+
+	if !ok {
+		return PasswordMismatch
+	}
+
+	ctx = context.WithValue(ctx, "user", userModel)
+	ctx = context.WithValue(ctx, "new_password", req.NewPassword)
+	_, err = service.UserService.UpdatePassword(ctx)
+	return err
 }
 
 // createTokenAsync handles token creation in a separate goroutine

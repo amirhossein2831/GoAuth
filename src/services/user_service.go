@@ -17,6 +17,7 @@ type IUserService interface {
 	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Update(c context.Context) (models.Model, error)
+	UpdatePassword(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
 }
 
@@ -107,6 +108,15 @@ func (service *UserService) Update(c context.Context) (models.Model, error) {
 	}
 
 	return res, nil
+}
+
+func (service *UserService) UpdatePassword(ctx context.Context) (models.Model, error) {
+	userModel := ctx.Value("user").(*models.User)
+	newPassword := ctx.Value("new_password").(string)
+
+	userModel.Password = newPassword
+
+	return service.Repository.Update(*userModel)
 }
 
 func (service *UserService) Delete(c context.Context) error {

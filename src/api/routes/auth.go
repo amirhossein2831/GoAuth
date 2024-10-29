@@ -15,4 +15,5 @@ func AuthRoutes(router *gin.RouterGroup) {
 	auth.GET("logout", net.HandlerFunc(authController.Logout))
 	auth.GET("verify", net.HandlerFunc(authController.Verify))
 	auth.GET("profile", net.HandlerFunc(authController.Profile))
+	auth.POST("change-password", net.HandlerFunc(authController.ChangePassword))
 }
