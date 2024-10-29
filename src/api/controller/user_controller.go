@@ -22,7 +22,7 @@ func NewUserController() *UserController {
 }
 
 func (controller *UserController) List(c *gin.Context) response.IResponse {
-	ctx := context.Background()
+	ctx := context.WithValue(context.Background(), "columns", map[string]any{})
 	res, err := controller.Service.List(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -40,7 +40,7 @@ func (controller *UserController) Get(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "userId", id)
+	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -91,7 +91,7 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
-	ctx = context.WithValue(ctx, "userId", id)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"id": id})
 	res, err := controller.Service.Update(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -109,7 +109,7 @@ func (controller *UserController) Delete(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "userId", id)
+	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
 	err = controller.Service.Delete(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -134,7 +134,7 @@ func (controller *UserController) ChangePassword(c *gin.Context) response.IRespo
 	}
 
 	ctx := context.WithValue(context.Background(), "req", req)
-	ctx = context.WithValue(ctx, "userId", id)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"id": id})
 
 	_, err = controller.Service.ChangePassword(ctx)
 	if err != nil {

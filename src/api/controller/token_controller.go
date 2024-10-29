@@ -20,7 +20,7 @@ func NewTokenController() *TokenController {
 }
 
 func (controller *TokenController) List(c *gin.Context) response.IResponse {
-	ctx := context.Background()
+	ctx := context.WithValue(context.Background(), "columns", map[string]any{})
 	res, err := controller.Service.List(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -38,7 +38,7 @@ func (controller *TokenController) Get(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "tokenId", id)
+	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -56,7 +56,7 @@ func (controller *TokenController) Delete(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "tokenId", id)
+	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
 	err = controller.Service.Delete(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)

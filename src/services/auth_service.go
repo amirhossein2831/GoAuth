@@ -41,10 +41,8 @@ func NewAuthService() *AuthService {
 func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	req := ctx.Value("req").(*auth.LoginRequest)
 
-	ctx = context.WithValue(ctx, "columns", map[string]any{
-		"email": req.Email,
-	})
-	user, err := service.UserService.GetByColumn(ctx)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"email": req.Email})
+	user, err := service.UserService.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -76,13 +74,13 @@ func (service *AuthService) TokenList(ctx context.Context) ([]models.Model, erro
 	token := ctx.Value("token").(string)
 	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
 
-	res, err := service.TokenService.GetByColumn(ctx)
+	res, err := service.TokenService.Get(ctx)
 	if err != nil {
 		return nil, TokenIsNotExits
 	}
 
 	c := context.WithValue(context.Background(), "columns", map[string]any{"user_id": res.(*models.Token).UserId})
-	return service.TokenService.ListByColumn(c)
+	return service.TokenService.List(c)
 }
 
 func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
@@ -93,7 +91,7 @@ func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
 	token := ctx.Value("token").(string)
 	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
 
-	tokenModel, err := service.TokenService.GetByColumn(ctx)
+	tokenModel, err := service.TokenService.Get(ctx)
 	if err != nil {
 		return nil, TokenIsNotExits
 	}
@@ -103,7 +101,7 @@ func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
 		return nil, err
 	}
 
-	ctx = context.WithValue(ctx, "userId", tokenModel.(*models.Token).UserId)
+	ctx = context.WithValue(context.Background(), "columns", map[string]any{"id": tokenModel.(*models.Token).UserId})
 	return service.UserService.Get(ctx)
 }
 
@@ -111,7 +109,7 @@ func (service *AuthService) Verify(ctx context.Context) (interface{}, error) {
 	token := ctx.Value("token").(string)
 	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
 
-	_, err := service.TokenService.GetByColumn(ctx)
+	_, err := service.TokenService.Get(ctx)
 	if err != nil {
 		return nil, TokenIsNotExits
 	}

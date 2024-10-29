@@ -13,9 +13,7 @@ var InvalidTokenType = errors.New("token Type is invalid")
 
 type ITokenService interface {
 	List(c context.Context) ([]models.Model, error)
-	ListByColumn(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
-	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
 	DeleteByColumn(c context.Context) error
@@ -32,15 +30,6 @@ func NewTokenService() *TokenService {
 }
 
 func (service *TokenService) List(c context.Context) ([]models.Model, error) {
-	all, err := service.Repository.List()
-	if err != nil {
-		return nil, err
-	}
-
-	return models.ToModel(all), nil
-}
-
-func (service *TokenService) ListByColumn(c context.Context) ([]models.Model, error) {
 	columns := c.Value("columns").(map[string]any)
 
 	all, err := service.Repository.ListByColumn(columns)
@@ -52,17 +41,6 @@ func (service *TokenService) ListByColumn(c context.Context) ([]models.Model, er
 }
 
 func (service *TokenService) Get(c context.Context) (models.Model, error) {
-	id := c.Value("tokenId").(uint)
-
-	res, err := service.Repository.Get(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (service *TokenService) GetByColumn(c context.Context) (models.Model, error) {
 	columns := c.Value("columns").(map[string]any)
 	return service.Repository.GetByColumn(columns)
 }
@@ -105,7 +83,7 @@ func (service *TokenService) DeleteByColumn(c context.Context) error {
 	token := c.Value("token").(string)
 	c = context.WithValue(c, "columns", map[string]any{"access_token": token})
 
-	res, err := service.GetByColumn(c)
+	res, err := service.Get(c)
 	if err != nil {
 		return TokenNotFound
 	}

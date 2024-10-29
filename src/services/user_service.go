@@ -14,7 +14,6 @@ var EmailShouldBeUnique = errors.New("email should be unique")
 type IUserService interface {
 	List(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
-	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Update(c context.Context) (models.Model, error)
 	UpdatePassword(c context.Context) (models.Model, error)
@@ -33,7 +32,9 @@ func NewUserService() *UserService {
 }
 
 func (service *UserService) List(c context.Context) ([]models.Model, error) {
-	all, err := service.Repository.List()
+	columns := c.Value("columns").(map[string]any)
+
+	all, err := service.Repository.ListByColumn(columns)
 	if err != nil {
 		return nil, err
 	}
@@ -42,17 +43,6 @@ func (service *UserService) List(c context.Context) ([]models.Model, error) {
 }
 
 func (service *UserService) Get(c context.Context) (models.Model, error) {
-	userId := c.Value("userId").(uint)
-
-	res, err := service.Repository.Get(userId)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-func (service *UserService) GetByColumn(c context.Context) (models.Model, error) {
 	columns := c.Value("columns").(map[string]any)
 	return service.Repository.GetByColumn(columns)
 }
