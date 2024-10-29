@@ -15,4 +15,5 @@ func UserRoutes(router *gin.RouterGroup) {
 	users.POST("", net.HandlerFunc(userController.Create))
 	users.PATCH(":id", net.HandlerFunc(userController.Update))
 	users.DELETE(":id", net.HandlerFunc(userController.Delete))
+	users.POST("change-password/:id", net.HandlerFunc(userController.ChangePassword))
 }

@@ -117,3 +117,29 @@ func (controller *UserController) Delete(c *gin.Context) response.IResponse {
 
 	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
 }
+
+func (controller *UserController) ChangePassword(c *gin.Context) response.IResponse {
+	var req *user.ChangePasswordRequest
+	if err := c.ShouldBind(&req); err != nil {
+		return response.NewResponse(c)
+	}
+
+	if err := val.Validate(req); err != nil {
+		return response.NewResponse(c).SetData(err)
+	}
+
+	id, err := utils.GetID(c.Param("id"))
+	if err != nil {
+		return response.NewResponse(c).SetError(err)
+	}
+
+	ctx := context.WithValue(context.Background(), "req", req)
+	ctx = context.WithValue(ctx, "userId", id)
+
+	_, err = controller.Service.ChangePassword(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetError(err)
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
+}

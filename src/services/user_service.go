@@ -18,6 +18,7 @@ type IUserService interface {
 	Create(c context.Context) (models.Model, error)
 	Update(c context.Context) (models.Model, error)
 	UpdatePassword(c context.Context) (models.Model, error)
+	ChangePassword(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
 }
 
@@ -115,6 +116,19 @@ func (service *UserService) UpdatePassword(ctx context.Context) (models.Model, e
 	newPassword := ctx.Value("new_password").(string)
 
 	userModel.Password = newPassword
+
+	return service.Repository.Update(*userModel)
+}
+
+func (service *UserService) ChangePassword(c context.Context) (models.Model, error) {
+	req := c.Value("req").(*user.ChangePasswordRequest)
+	user, err := service.Get(c)
+	if err != nil {
+		return nil, UserNotFound
+	}
+
+	userModel := user.(*models.User)
+	userModel.Password = req.NewPassword
 
 	return service.Repository.Update(*userModel)
 }
