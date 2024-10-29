@@ -14,7 +14,7 @@ func AdminSeeder() error {
 		Type:      models.SuperAdmin,
 	}
 
-	res := database.GetInstance().GetClient().Create(&user)
+	res := database.GetInstance().GetClient().FirstOrCreate(&user)
 	if res.Error != nil {
 		return res.Error
 	}
