@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"GoAuth/src/api"
 	"GoAuth/src/database"
+	"GoAuth/src/database/seed"
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	"GoAuth/src/pkg/auth"
@@ -51,6 +52,13 @@ func Init() (err error) {
 		log.Fatalf("Hash Service: Failed to Initialize. %v", err)
 	}
 	log.Println("Hash Service: Initialized Successfully.")
+
+	// Seed Database
+	err = seed.Seed()
+	if err != nil {
+		log.Fatalf("Database Service: Failed to Seed. %v", err)
+	}
+	log.Println("Database Service: Database Seed Successfully.")
 
 	// Initialize AuthPackage
 	err = auth.Init()
