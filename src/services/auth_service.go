@@ -5,7 +5,6 @@ import (
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	authenticator "GoAuth/src/pkg/auth"
-	"GoAuth/src/pkg/auth/driver"
 	"context"
 	"errors"
 )
@@ -13,15 +12,15 @@ import (
 var (
 	AuthenticateFailed = errors.New("authentication failed")
 	PasswordMismatch   = errors.New("password does not match")
-	InvalidClaimType   = errors.New("claim type is not valid")
 	TokenIsNotExits    = errors.New("token is not exits")
 )
 
 type IAuthService interface {
 	Login(ctx context.Context) (interface{}, error)
 	Register(ctx context.Context) (models.Model, error)
+	Profile(ctx context.Context) (models.Model, error)
+	Verify(ctx context.Context) (interface{}, error)
 	Logout(ctx context.Context) error
-	Verify(ctx context.Context) (models.Model, error)
 }
 
 type AuthService struct {
@@ -79,7 +78,7 @@ func (service *AuthService) Logout(ctx context.Context) error {
 	return service.TokenService.DeleteByColumn(ctx)
 }
 
-func (service *AuthService) Verify(ctx context.Context) (models.Model, error) {
+func (service *AuthService) Verify(ctx context.Context) (interface{}, error) {
 	token := ctx.Value("token").(string)
 	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
 
@@ -88,25 +87,25 @@ func (service *AuthService) Verify(ctx context.Context) (models.Model, error) {
 		return nil, TokenIsNotExits
 	}
 
-	claim, err := authenticator.GetInstance().ValidateToken(token)
+	return authenticator.GetInstance().ValidateToken(token)
+}
+
+func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
+	token := ctx.Value("token").(string)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
+
+	tokenModel, err := service.TokenService.GetByColumn(ctx)
+	if err != nil {
+		return nil, TokenIsNotExits
+	}
+
+	_, err = authenticator.GetInstance().ValidateToken(token)
 	if err != nil {
 		return nil, err
 	}
 
-	switch claim.(type) {
-	case *driver.JWTClaims:
-		claimModel := claim.(*driver.JWTClaims)
-		ctx = context.WithValue(ctx, "columns", map[string]any{"email": claimModel.Email})
-	default:
-		return nil, InvalidClaimType
-	}
-
-	res, err := service.UserService.GetByColumn(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	ctx = context.WithValue(ctx, "userId", tokenModel.(*models.Token).UserId)
+	return service.UserService.Get(ctx)
 }
 
 // createTokenAsync handles token creation in a separate goroutine

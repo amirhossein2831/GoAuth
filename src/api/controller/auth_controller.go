@@ -95,6 +95,23 @@ func (controller *AuthController) Verify(c *gin.Context) response.IResponse {
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(map[string]interface{}{
 		"is_valid": true,
-		"user":     res,
+		"claims":   res,
+	})
+}
+
+func (controller *AuthController) Profile(c *gin.Context) response.IResponse {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return response.NewResponse(c).SetError(TokenIsMissed)
+	}
+
+	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+	res, err := controller.Service.Profile(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(map[string]interface{}{
+		"user": res,
 	})
 }
