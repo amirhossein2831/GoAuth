@@ -19,7 +19,7 @@ func NewAuthenticationMiddleware() *AuthenticationMiddleware {
 	}
 }
 
-func (service *AuthenticationMiddleware) Middleware(userType string) gin.HandlerFunc {
+func (service *AuthenticationMiddleware) Middleware(userType models.UserType) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken := c.GetHeader("Authorization")
 		if accessToken == "" {
@@ -39,7 +39,7 @@ func (service *AuthenticationMiddleware) Middleware(userType string) gin.Handler
 		}
 		user := res.(*models.User)
 
-		if string(user.Type) != userType {
+		if user.Type != userType {
 			c.JSON(http.StatusForbidden, gin.H{"error": "You don't Have Permission"})
 			c.Abort()
 			return
