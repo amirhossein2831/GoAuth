@@ -45,6 +45,21 @@ func (controller *AuthController) Login(c *gin.Context) response.IResponse {
 		})
 }
 
+func (controller *AuthController) Logout(c *gin.Context) response.IResponse {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return response.NewResponse(c).SetError(TokenIsMissed)
+	}
+
+	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+	err := controller.Service.Logout(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
+}
+
 func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 	var req *user.CreateUserRequest
 	if err := c.ShouldBind(&req); err != nil {
@@ -66,21 +81,6 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 		SetData(map[string]any{
 			"user": res,
 		})
-}
-
-func (controller *AuthController) Logout(c *gin.Context) response.IResponse {
-	accessToken := c.GetHeader("Authorization")
-	if accessToken == "" {
-		return response.NewResponse(c).SetError(TokenIsMissed)
-	}
-
-	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
-	err := controller.Service.Logout(ctx)
-	if err != nil {
-		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
-	}
-
-	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
 }
 
 func (controller *AuthController) Verify(c *gin.Context) response.IResponse {
@@ -144,4 +144,22 @@ func (controller *AuthController) ChangePassword(c *gin.Context) response.IRespo
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusNoContent)
+}
+
+func (controller *AuthController) TokenList(c *gin.Context) response.IResponse {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return response.NewResponse(c).SetError(TokenIsMissed)
+	}
+
+	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+
+	res, err := controller.Service.TokenList(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusOK).SetData(map[string]any{
+		"tokens": res,
+	})
 }

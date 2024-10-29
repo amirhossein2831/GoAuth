@@ -13,6 +13,7 @@ var InvalidTokenType = errors.New("token Type is invalid")
 
 type ITokenService interface {
 	List(c context.Context) ([]models.Model, error)
+	ListByColumn(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
 	GetByColumn(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
@@ -32,6 +33,17 @@ func NewTokenService() *TokenService {
 
 func (service *TokenService) List(c context.Context) ([]models.Model, error) {
 	all, err := service.Repository.List()
+	if err != nil {
+		return nil, err
+	}
+
+	return models.ToModel(all), nil
+}
+
+func (service *TokenService) ListByColumn(c context.Context) ([]models.Model, error) {
+	columns := c.Value("columns").(map[string]any)
+
+	all, err := service.Repository.ListByColumn(columns)
 	if err != nil {
 		return nil, err
 	}

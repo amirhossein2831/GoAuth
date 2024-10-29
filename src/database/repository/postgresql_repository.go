@@ -14,9 +14,25 @@ func NewPostgresqlRepository[T models.Model]() *PostgresqlRepository[T] {
 }
 
 // List method retrieves all
-func (r *PostgresqlRepository[T]) List() ([]*T, error) {
-	var model []*T
+func (r *PostgresqlRepository[T]) List() ([]T, error) {
+	var model []T
 	err := database.GetInstance().GetClient().Find(&model).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return model, nil
+}
+
+// ListByColumn method retrieves all base on condition
+func (r *PostgresqlRepository[T]) ListByColumn(columns map[string]any) ([]*T, error) {
+	var model []*T
+	query := database.GetInstance().GetClient().Model(&model)
+
+	for key, value := range columns {
+		query = query.Where(fmt.Sprintf("%s = ?", key), value)
+	}
+	err := query.Find(&model).Error
 	if err != nil {
 		return nil, err
 	}

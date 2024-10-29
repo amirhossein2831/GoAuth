@@ -22,6 +22,7 @@ type IAuthService interface {
 	Verify(ctx context.Context) (interface{}, error)
 	Logout(ctx context.Context) error
 	ChangePassword(ctx context.Context) error
+	TokenList(ctx context.Context) ([]models.Model, error)
 }
 
 type AuthService struct {
@@ -71,24 +72,21 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	return token, nil
 }
 
-func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
-	return service.UserService.Create(ctx)
-}
-
-func (service *AuthService) Logout(ctx context.Context) error {
-	return service.TokenService.DeleteByColumn(ctx)
-}
-
-func (service *AuthService) Verify(ctx context.Context) (interface{}, error) {
+func (service *AuthService) TokenList(ctx context.Context) ([]models.Model, error) {
 	token := ctx.Value("token").(string)
 	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
 
-	_, err := service.TokenService.GetByColumn(ctx)
+	res, err := service.TokenService.GetByColumn(ctx)
 	if err != nil {
 		return nil, TokenIsNotExits
 	}
 
-	return authenticator.GetInstance().ValidateToken(token)
+	c := context.WithValue(context.Background(), "columns", map[string]any{"user_id": res.(*models.Token).UserId})
+	return service.TokenService.ListByColumn(c)
+}
+
+func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
+	return service.UserService.Create(ctx)
 }
 
 func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
@@ -107,6 +105,22 @@ func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
 
 	ctx = context.WithValue(ctx, "userId", tokenModel.(*models.Token).UserId)
 	return service.UserService.Get(ctx)
+}
+
+func (service *AuthService) Verify(ctx context.Context) (interface{}, error) {
+	token := ctx.Value("token").(string)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
+
+	_, err := service.TokenService.GetByColumn(ctx)
+	if err != nil {
+		return nil, TokenIsNotExits
+	}
+
+	return authenticator.GetInstance().ValidateToken(token)
+}
+
+func (service *AuthService) Logout(ctx context.Context) error {
+	return service.TokenService.DeleteByColumn(ctx)
 }
 
 func (service *AuthService) ChangePassword(ctx context.Context) error {
