@@ -4,6 +4,7 @@ import (
 	driver2 "GoAuth/src/pkg/auth/driver"
 	"errors"
 	"os"
+	"strconv"
 )
 
 var instance IAuth
@@ -38,4 +39,13 @@ func GetInstance() IAuth {
 		Init()
 	}
 	return instance
+}
+
+func ActiveTokenNumber() int {
+	numStr := os.Getenv("ACTIVE_TOKEN_NUMBER")
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		num = 5
+	}
+	return num
 }

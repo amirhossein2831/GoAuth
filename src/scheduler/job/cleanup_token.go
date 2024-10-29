@@ -20,7 +20,7 @@ func CleanUpToken() error {
 
 	c := cron.New()
 	_, err = c.AddFunc(fmt.Sprintf("@every %vs", duration), func() {
-		result := database.GetInstance().GetClient().Where("refresh_token_expires_at < ?", time.Now()).Unscoped().Delete(&models.Token{})
+		result := database.GetInstance().GetClient().Where("refresh_token_expires_at < ?", time.Now()).Delete(&models.Token{})
 		if result.Error != nil {
 			// Todo: put the log in a file and use a logger module
 			log.Printf("Error cleaning up token expiration: %v", result.Error)

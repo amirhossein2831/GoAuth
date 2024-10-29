@@ -5,8 +5,10 @@ import (
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	authenticator "GoAuth/src/pkg/auth"
+	"GoAuth/src/pkg/utils"
 	"context"
 	"errors"
+	"time"
 )
 
 var (
@@ -41,12 +43,14 @@ func NewAuthService() *AuthService {
 func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	req := ctx.Value("req").(*auth.LoginRequest)
 
-	ctx = context.WithValue(ctx, "columns", map[string]any{"email": req.Email})
+	// Get user from with email
+	ctx = context.WithValue(context.Background(), "columns", map[string]any{"email": req.Email})
 	user, err := service.UserService.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	// check the user pass is valid
 	userModel := user.(*models.User)
 	ok, err := hash.VerifyStoredHash([]byte(userModel.Password), req.Password)
 	if err != nil {
@@ -57,15 +61,26 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 		return nil, PasswordMismatch
 	}
 
-	// Generate Token
+	// get the number of active token
+	ctx = context.WithValue(context.Background(), "columns", map[string]any{"user_id": userModel.ID})
+	ctx = context.WithValue(ctx, "columns-greater-than", map[string]any{"access_token_expires_at": time.Now()})
+	tokens, err := service.TokenService.ListValidToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(tokens) > authenticator.ActiveTokenNumber() {
+		return tokens[utils.RandomInRange(0, 4)], nil
+	}
+
+	// Generate New Token
 	token, err := authenticator.GetInstance().GenerateToken(userModel.Email)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx = context.WithValue(ctx, "token", token)
+	ctx = context.WithValue(context.Background(), "token", token)
 	ctx = context.WithValue(ctx, "userId", userModel.ID)
-
 	go service.createTokenAsync(ctx)
 	return token, nil
 }

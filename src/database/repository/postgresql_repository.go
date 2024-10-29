@@ -40,6 +40,27 @@ func (r *PostgresqlRepository[T]) ListByColumn(columns map[string]any) ([]*T, er
 	return model, nil
 }
 
+// ListByColumnWithGreaterThan method retrieves all base on condition and some greater that
+func (r *PostgresqlRepository[T]) ListByColumnWithGreaterThan(columns map[string]any, greater map[string]any) ([]*T, error) {
+	var model []*T
+	query := database.GetInstance().GetClient().Model(&model)
+
+	for key, value := range columns {
+		query = query.Where(fmt.Sprintf("%s = ?", key), value)
+	}
+
+	for key, value := range greater {
+		query = query.Where(fmt.Sprintf("%s > ?", key), value)
+	}
+
+	err := query.Find(&model).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return model, nil
+}
+
 // Get method retrieves a models by its ID
 func (r *PostgresqlRepository[T]) Get(id uint) (*T, error) {
 	var model T

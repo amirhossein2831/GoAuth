@@ -13,6 +13,7 @@ var InvalidTokenType = errors.New("token Type is invalid")
 
 type ITokenService interface {
 	List(c context.Context) ([]models.Model, error)
+	ListValidToken(c context.Context) ([]models.Model, error)
 	Get(c context.Context) (models.Model, error)
 	Create(c context.Context) (models.Model, error)
 	Delete(c context.Context) error
@@ -89,4 +90,16 @@ func (service *TokenService) DeleteByColumn(c context.Context) error {
 	}
 
 	return service.Repository.HardDelete(*res.(*models.Token))
+}
+
+func (service *TokenService) ListValidToken(c context.Context) ([]models.Model, error) {
+	columns := c.Value("columns").(map[string]any)
+	greaterCol := c.Value("columns-greater-than").(map[string]any)
+
+	all, err := service.Repository.ListByColumnWithGreaterThan(columns, greaterCol)
+	if err != nil {
+		return nil, err
+	}
+
+	return models.ToModel(all), nil
 }

@@ -8,6 +8,7 @@ import (
 type IRepository[T models.Model] interface {
 	List() ([]T, error)
 	ListByColumn(columns map[string]any) ([]*T, error)
+	ListByColumnWithGreaterThan(columns map[string]any, greater map[string]any) ([]*T, error)
 	Get(id uint) (*T, error)
 	GetByColumn(columns map[string]any) (*T, error)
 	Create(model T) (*T, error)
