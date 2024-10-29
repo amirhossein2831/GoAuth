@@ -55,6 +55,7 @@ func (service *TokenService) Create(c context.Context) (models.Model, error) {
 	switch req.(type) {
 	case *driver.JWT:
 		jwtToken := req.(*driver.JWT)
+		token.Uuid = jwtToken.Uuid
 		token.AccessToken = jwtToken.AccessTokenString
 		token.RefreshToken = jwtToken.RefreshTokenString
 		token.AccessTokenExpiresAt = jwtToken.AccessTokenExpiresAt

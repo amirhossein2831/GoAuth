@@ -1,6 +1,7 @@
 package services
 
 import (
+	"GoAuth/src/api/dto"
 	"GoAuth/src/api/request/auth"
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
@@ -69,8 +70,15 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	// send one of active tokens if user try to get token more that limit number
 	if len(tokens) > authenticator.ActiveTokenNumber() {
-		return tokens[utils.RandomInRange(0, 4)], nil
+		token := tokens[utils.RandomInRange(0, 4)].(*models.Token)
+		return dto.TokenDto{
+			AccessTokenString:     token.AccessToken,
+			RefreshTokenString:    token.RefreshToken,
+			AccessTokenExpiresAt:  token.AccessTokenExpiresAt,
+			RefreshTokenExpiresAt: token.RefreshTokenExpiresAt,
+		}, nil
 	}
 
 	// Generate New Token
