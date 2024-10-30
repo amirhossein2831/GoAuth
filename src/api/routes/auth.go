@@ -16,5 +16,6 @@ func AuthRoutes(router *gin.RouterGroup) {
 	auth.GET("tokens", net.HandlerFunc(authController.TokenList))
 	auth.POST("login", net.HandlerFunc(authController.Login))
 	auth.POST("register", net.HandlerFunc(authController.Register))
+	auth.POST("update", net.HandlerFunc(authController.Update))
 	auth.POST("change-password", net.HandlerFunc(authController.ChangePassword))
 }

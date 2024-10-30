@@ -21,6 +21,7 @@ var (
 type IAuthService interface {
 	Login(ctx context.Context) (interface{}, error)
 	Register(ctx context.Context) (models.Model, error)
+	Update(ctx context.Context) (models.Model, error)
 	Profile(ctx context.Context) (models.Model, error)
 	Verify(ctx context.Context) (interface{}, error)
 	Logout(ctx context.Context) error
@@ -108,6 +109,10 @@ func (service *AuthService) TokenList(ctx context.Context) ([]models.Model, erro
 
 func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
 	return service.UserService.Create(ctx)
+}
+
+func (service *AuthService) Update(ctx context.Context) (models.Model, error) {
+	return service.UserService.Update(ctx)
 }
 
 func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {

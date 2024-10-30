@@ -4,6 +4,7 @@ import (
 	"GoAuth/src/api/request/auth"
 	"GoAuth/src/api/request/user"
 	"GoAuth/src/pkg/response"
+	"GoAuth/src/pkg/utils"
 	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
 	"context"
@@ -75,6 +76,35 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 	res, err := controller.Service.Register(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
+	}
+
+	return response.NewResponse(c).SetStatusCode(http.StatusOK).
+		SetData(map[string]any{
+			"user": res,
+		})
+}
+
+func (controller *AuthController) Update(c *gin.Context) response.IResponse {
+	id, err := utils.GetID(c.Param("id"))
+	if err != nil {
+		return response.NewResponse(c).SetError(err)
+	}
+
+	var req *user.UpdateUserRequest
+	err = c.ShouldBind(&req)
+	if err != nil {
+		return response.NewResponse(c)
+	}
+
+	if res := val.Validate(req); res != nil {
+		return response.NewResponse(c).SetData(res)
+	}
+
+	ctx := context.WithValue(context.Background(), "req", req)
+	ctx = context.WithValue(ctx, "columns", map[string]any{"id": id})
+	res, err := controller.Service.Update(ctx)
+	if err != nil {
+		return response.NewResponse(c).SetError(err)
 	}
 
 	return response.NewResponse(c).SetStatusCode(http.StatusOK).

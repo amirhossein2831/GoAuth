@@ -3,6 +3,7 @@ package services
 import (
 	"GoAuth/src/api/request/user"
 	"GoAuth/src/database/repository"
+	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	"context"
 	"errors"
@@ -57,11 +58,16 @@ func (service *UserService) Create(c context.Context) (models.Model, error) {
 		return nil, EmailShouldBeUnique
 	}
 
+	userPass, err := hash.GetInstance().Generate([]byte(req.Password))
+	if err != nil {
+		return nil, err
+	}
+
 	entity := models.User{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
-		Password:  req.Password,
+		Password:  string(userPass),
 	}
 
 	res, err := service.Repository.Create(entity)
@@ -105,7 +111,12 @@ func (service *UserService) UpdatePassword(ctx context.Context) (models.Model, e
 	userModel := ctx.Value("user").(*models.User)
 	newPassword := ctx.Value("new_password").(string)
 
-	userModel.Password = newPassword
+	userPass, err := hash.GetInstance().Generate([]byte(newPassword))
+	if err != nil {
+		return nil, err
+	}
+
+	userModel.Password = string(userPass)
 
 	return service.Repository.Update(*userModel)
 }
@@ -117,8 +128,13 @@ func (service *UserService) ChangePassword(c context.Context) (models.Model, err
 		return nil, UserNotFound
 	}
 
+	userPass, err := hash.GetInstance().Generate([]byte(req.NewPassword))
+	if err != nil {
+		return nil, err
+	}
+
 	userModel := user.(*models.User)
-	userModel.Password = req.NewPassword
+	userModel.Password = string(userPass)
 
 	return service.Repository.Update(*userModel)
 }
