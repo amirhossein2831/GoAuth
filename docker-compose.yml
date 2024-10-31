@@ -15,7 +15,6 @@ services:
       - go-auth
 
   # Nginx
-  # TODO: need to use tls
   nginx:
     image: nginx:alpine
     container_name: nginx_load_balancer.${APP_NAME}
