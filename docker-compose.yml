@@ -19,6 +19,8 @@ services:
     image: nginx:alpine
     container_name: nginx_load_balancer.${APP_NAME}
     restart: unless-stopped
+    depends_on:
+      - app
     ports:
       - "80:80"
       - "443:443"
@@ -28,8 +30,6 @@ services:
       - ./build/certs/nginx/go-auth.key:/etc/nginx/ssl/go-auth.key
     networks:
       - go-auth
-    depends_on:
-      - app
 
   # Postgres
   postgres:
@@ -53,6 +53,7 @@ services:
       timeout: 5s
       retries: 5
 
+# Volumes
 volumes:
   pg-data:
     external: true
