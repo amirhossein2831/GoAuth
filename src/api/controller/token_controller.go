@@ -1,10 +1,10 @@
 package controller
 
 import (
+	ctx2 "GoAuth/src/pkg/ctx"
 	"GoAuth/src/pkg/response"
 	"GoAuth/src/pkg/utils"
 	"GoAuth/src/services"
-	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -20,7 +20,7 @@ func NewTokenController() *TokenController {
 }
 
 func (controller *TokenController) List(c *gin.Context) response.IResponse {
-	ctx := context.WithValue(context.Background(), "columns", map[string]any{})
+	ctx := ctx2.New().SetMap("columns", "", nil)
 	res, err := controller.Service.List(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -38,7 +38,7 @@ func (controller *TokenController) Get(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
+	ctx := ctx2.New().SetMap("columns", "id", id)
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -56,7 +56,7 @@ func (controller *TokenController) Delete(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
+	ctx := ctx2.New().SetMap("columns", "id", id)
 	err = controller.Service.Delete(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)

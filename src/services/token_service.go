@@ -4,7 +4,7 @@ import (
 	"GoAuth/src/database/repository"
 	"GoAuth/src/models"
 	"GoAuth/src/pkg/auth/driver"
-	"context"
+	"GoAuth/src/pkg/ctx"
 	"errors"
 )
 
@@ -12,12 +12,12 @@ var TokenNotFound = errors.New("token not found")
 var InvalidTokenType = errors.New("token Type is invalid")
 
 type ITokenService interface {
-	List(c context.Context) ([]models.Model, error)
-	ListValidToken(c context.Context) ([]models.Model, error)
-	Get(c context.Context) (models.Model, error)
-	Create(c context.Context) (models.Model, error)
-	Delete(c context.Context) error
-	DeleteByColumn(c context.Context) error
+	List(c ctx.CTX) ([]models.Model, error)
+	ListValidToken(c ctx.CTX) ([]models.Model, error)
+	Get(c ctx.CTX) (models.Model, error)
+	Create(c ctx.CTX) (models.Model, error)
+	Delete(c ctx.CTX) error
+	DeleteByColumn(c ctx.CTX) error
 }
 
 type TokenService struct {
@@ -30,8 +30,8 @@ func NewTokenService() *TokenService {
 	}
 }
 
-func (service *TokenService) List(c context.Context) ([]models.Model, error) {
-	columns := c.Value("columns").(map[string]any)
+func (service *TokenService) List(c ctx.CTX) ([]models.Model, error) {
+	columns := c.GetMap("columns")
 
 	all, err := service.Repository.ListByColumn(columns)
 	if err != nil {
@@ -41,14 +41,14 @@ func (service *TokenService) List(c context.Context) ([]models.Model, error) {
 	return models.ToModel(all), nil
 }
 
-func (service *TokenService) Get(c context.Context) (models.Model, error) {
-	columns := c.Value("columns").(map[string]any)
+func (service *TokenService) Get(c ctx.CTX) (models.Model, error) {
+	columns := c.GetMap("columns")
 	return service.Repository.GetByColumn(columns)
 }
 
-func (service *TokenService) Create(c context.Context) (models.Model, error) {
-	req := c.Value("token")
-	userId := c.Value("userId").(uint)
+func (service *TokenService) Create(c ctx.CTX) (models.Model, error) {
+	req := c.Get("token")
+	userId := c.Get("userId").(uint)
 
 	token := models.Token{UserId: userId}
 
@@ -72,7 +72,7 @@ func (service *TokenService) Create(c context.Context) (models.Model, error) {
 	return res, nil
 }
 
-func (service *TokenService) Delete(c context.Context) error {
+func (service *TokenService) Delete(c ctx.CTX) error {
 	res, err := service.Get(c)
 	if err != nil {
 		return TokenNotFound
@@ -81,21 +81,21 @@ func (service *TokenService) Delete(c context.Context) error {
 	return service.Repository.HardDelete(*res.(*models.Token))
 }
 
-func (service *TokenService) DeleteByColumn(c context.Context) error {
-	token := c.Value("token").(string)
-	c = context.WithValue(c, "columns", map[string]any{"access_token": token})
+func (service *TokenService) DeleteByColumn(c ctx.CTX) error {
+	token := c.Get("token").(string)
 
+	c = ctx.New().SetMap("columns", "access_token", token)
 	res, err := service.Get(c)
 	if err != nil {
 		return TokenNotFound
 	}
 
-	return service.Repository.HardDelete(*res.(*models.Token))
+	return service.Repository.Delete(*res.(*models.Token))
 }
 
-func (service *TokenService) ListValidToken(c context.Context) ([]models.Model, error) {
-	columns := c.Value("columns").(map[string]any)
-	greaterCol := c.Value("columns-greater-than").(map[string]any)
+func (service *TokenService) ListValidToken(c ctx.CTX) ([]models.Model, error) {
+	columns := c.GetMap("columns")
+	greaterCol := c.GetMap("columns-greater-than")
 
 	all, err := service.Repository.ListByColumnWithGreaterThan(columns, greaterCol)
 	if err != nil {

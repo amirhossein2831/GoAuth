@@ -5,7 +5,7 @@ import (
 	"GoAuth/src/database/repository"
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
-	"context"
+	"GoAuth/src/pkg/ctx"
 	"errors"
 )
 
@@ -13,13 +13,13 @@ var UserNotFound = errors.New("user not found")
 var EmailShouldBeUnique = errors.New("email should be unique")
 
 type IUserService interface {
-	List(c context.Context) ([]models.Model, error)
-	Get(c context.Context) (models.Model, error)
-	Create(c context.Context) (models.Model, error)
-	Update(c context.Context) (models.Model, error)
-	UpdatePassword(c context.Context) (models.Model, error)
-	ChangePassword(c context.Context) (models.Model, error)
-	Delete(c context.Context) error
+	List(c ctx.CTX) ([]models.Model, error)
+	Get(c ctx.CTX) (models.Model, error)
+	Create(c ctx.CTX) (models.Model, error)
+	Update(c ctx.CTX) (models.Model, error)
+	UpdatePassword(c ctx.CTX) (models.Model, error)
+	ChangePassword(c ctx.CTX) (models.Model, error)
+	Delete(c ctx.CTX) error
 }
 
 type UserService struct {
@@ -32,9 +32,8 @@ func NewUserService() *UserService {
 	}
 }
 
-func (service *UserService) List(c context.Context) ([]models.Model, error) {
-	columns := c.Value("columns").(map[string]any)
-
+func (service *UserService) List(c ctx.CTX) ([]models.Model, error) {
+	columns := c.GetMap("columns")
 	all, err := service.Repository.ListByColumn(columns)
 	if err != nil {
 		return nil, err
@@ -43,13 +42,13 @@ func (service *UserService) List(c context.Context) ([]models.Model, error) {
 	return models.ToModel(all), nil
 }
 
-func (service *UserService) Get(c context.Context) (models.Model, error) {
-	columns := c.Value("columns").(map[string]any)
+func (service *UserService) Get(c ctx.CTX) (models.Model, error) {
+	columns := c.GetMap("columns")
 	return service.Repository.GetByColumn(columns)
 }
 
-func (service *UserService) Create(c context.Context) (models.Model, error) {
-	req := c.Value("req").(*user.CreateUserRequest)
+func (service *UserService) Create(c ctx.CTX) (models.Model, error) {
+	req := c.Get("req").(*user.CreateUserRequest)
 
 	_, err := service.Repository.GetByColumn(map[string]any{
 		"email": req.Email,
@@ -78,8 +77,8 @@ func (service *UserService) Create(c context.Context) (models.Model, error) {
 	return res, nil
 }
 
-func (service *UserService) Update(c context.Context) (models.Model, error) {
-	req := c.Value("req").(*user.UpdateUserRequest)
+func (service *UserService) Update(c ctx.CTX) (models.Model, error) {
+	req := c.Get("req").(*user.UpdateUserRequest)
 
 	userToUpdate, err := service.Get(c)
 	if err != nil {
@@ -107,9 +106,9 @@ func (service *UserService) Update(c context.Context) (models.Model, error) {
 	return res, nil
 }
 
-func (service *UserService) UpdatePassword(ctx context.Context) (models.Model, error) {
-	userModel := ctx.Value("user").(*models.User)
-	newPassword := ctx.Value("new_password").(string)
+func (service *UserService) UpdatePassword(ctx ctx.CTX) (models.Model, error) {
+	userModel := ctx.Get("user").(*models.User)
+	newPassword := ctx.Get("new_password").(string)
 
 	userPass, err := hash.GetInstance().Generate([]byte(newPassword))
 	if err != nil {
@@ -121,8 +120,8 @@ func (service *UserService) UpdatePassword(ctx context.Context) (models.Model, e
 	return service.Repository.Update(*userModel)
 }
 
-func (service *UserService) ChangePassword(c context.Context) (models.Model, error) {
-	req := c.Value("req").(*user.ChangePasswordRequest)
+func (service *UserService) ChangePassword(c ctx.CTX) (models.Model, error) {
+	req := c.Get("req").(*user.ChangePasswordRequest)
 	user, err := service.Get(c)
 	if err != nil {
 		return nil, UserNotFound
@@ -139,7 +138,7 @@ func (service *UserService) ChangePassword(c context.Context) (models.Model, err
 	return service.Repository.Update(*userModel)
 }
 
-func (service *UserService) Delete(c context.Context) error {
+func (service *UserService) Delete(c ctx.CTX) error {
 	res, err := service.Get(c)
 	if err != nil {
 		return UserNotFound

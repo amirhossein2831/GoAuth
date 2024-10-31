@@ -2,11 +2,11 @@ package controller
 
 import (
 	"GoAuth/src/api/request/user"
+	ctx2 "GoAuth/src/pkg/ctx"
 	"GoAuth/src/pkg/response"
 	"GoAuth/src/pkg/utils"
 	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
-	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -22,7 +22,7 @@ func NewUserController() *UserController {
 }
 
 func (controller *UserController) List(c *gin.Context) response.IResponse {
-	ctx := context.WithValue(context.Background(), "columns", map[string]any{})
+	ctx := ctx2.New().SetMap("columns", "", nil)
 	res, err := controller.Service.List(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -40,7 +40,7 @@ func (controller *UserController) Get(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
+	ctx := ctx2.New().SetMap("columns", "id", id)
 	res, err := controller.Service.Get(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -62,7 +62,7 @@ func (controller *UserController) Create(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetData(res)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
+	ctx := ctx2.New().Set("req", req)
 	res, err := controller.Service.Create(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -90,8 +90,7 @@ func (controller *UserController) Update(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetData(res)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-	ctx = context.WithValue(ctx, "columns", map[string]any{"id": id})
+	ctx := ctx2.New().SetMap("columns", "id", id).Set("req", req)
 	res, err := controller.Service.Update(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -109,7 +108,7 @@ func (controller *UserController) Delete(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "columns", map[string]any{"id": id})
+	ctx := ctx2.New().SetMap("columns", "id", id)
 	err = controller.Service.Delete(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -133,9 +132,7 @@ func (controller *UserController) ChangePassword(c *gin.Context) response.IRespo
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-	ctx = context.WithValue(ctx, "columns", map[string]any{"id": id})
-
+	ctx := ctx2.New().SetMap("columns", "id", id).Set("req", req)
 	_, err = controller.Service.ChangePassword(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)

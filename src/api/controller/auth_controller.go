@@ -3,11 +3,11 @@ package controller
 import (
 	"GoAuth/src/api/request/auth"
 	"GoAuth/src/api/request/user"
+	ctx2 "GoAuth/src/pkg/ctx"
 	"GoAuth/src/pkg/response"
 	"GoAuth/src/pkg/utils"
 	val "GoAuth/src/pkg/validator"
 	"GoAuth/src/services"
-	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -33,8 +33,7 @@ func (controller *AuthController) Login(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-
+	ctx := ctx2.New().Set("req", req)
 	res, err := controller.Service.Login(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -53,8 +52,7 @@ func (controller *AuthController) Refresh(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-
+	ctx := ctx2.New().Set("req", req)
 	res, err := controller.Service.RefreshToken(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -72,7 +70,7 @@ func (controller *AuthController) Logout(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(TokenIsMissed)
 	}
 
-	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
+	ctx := ctx2.New().Set("token", strings.TrimPrefix(accessToken, "Bearer "))
 	err := controller.Service.Logout(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -91,8 +89,7 @@ func (controller *AuthController) Register(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetData(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-
+	ctx := ctx2.New().Set("req", req)
 	res, err := controller.Service.Register(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -120,8 +117,7 @@ func (controller *AuthController) Update(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetData(res)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-	ctx = context.WithValue(ctx, "columns", map[string]any{"id": id})
+	ctx := ctx2.New().SetMap("columns", "id", id).Set("req", req)
 	res, err := controller.Service.Update(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetError(err)
@@ -139,8 +135,7 @@ func (controller *AuthController) Verify(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(TokenIsMissed)
 	}
 
-	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
-
+	ctx := ctx2.New().Set("token", strings.TrimPrefix(accessToken, "Bearer "))
 	res, err := controller.Service.Verify(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -158,8 +153,7 @@ func (controller *AuthController) Profile(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(TokenIsMissed)
 	}
 
-	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
-
+	ctx := ctx2.New().Set("token", strings.TrimPrefix(accessToken, "Bearer "))
 	res, err := controller.Service.Profile(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -185,9 +179,7 @@ func (controller *AuthController) ChangePassword(c *gin.Context) response.IRespo
 		return response.NewResponse(c).SetData(err)
 	}
 
-	ctx := context.WithValue(context.Background(), "req", req)
-	ctx = context.WithValue(ctx, "token", strings.TrimPrefix(accessToken, "Bearer "))
-
+	ctx := ctx2.New().Set("token", strings.TrimPrefix(accessToken, "Bearer ")).Set("req", req)
 	err := controller.Service.ChangePassword(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)
@@ -202,8 +194,7 @@ func (controller *AuthController) TokenList(c *gin.Context) response.IResponse {
 		return response.NewResponse(c).SetError(TokenIsMissed)
 	}
 
-	ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
-
+	ctx := ctx2.New().Set("token", strings.TrimPrefix(accessToken, "Bearer "))
 	res, err := controller.Service.TokenList(ctx)
 	if err != nil {
 		return response.NewResponse(c).SetStatusCode(http.StatusUnprocessableEntity).SetError(err)

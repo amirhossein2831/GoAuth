@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"GoAuth/src/models"
+	ctx2 "GoAuth/src/pkg/ctx"
 	"GoAuth/src/services"
-	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -28,8 +28,7 @@ func (service *AuthenticationMiddleware) Middleware(userType models.UserType) gi
 			return
 		}
 
-		ctx := context.WithValue(context.Background(), "token", strings.TrimPrefix(accessToken, "Bearer "))
-
+		ctx := ctx2.New().Set("token", strings.TrimPrefix(accessToken, "Bearer "))
 		res, err := service.AuthService.Profile(ctx)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is invalid"})

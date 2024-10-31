@@ -6,8 +6,9 @@ import (
 	"GoAuth/src/hash"
 	"GoAuth/src/models"
 	authenticator "GoAuth/src/pkg/auth"
+	"GoAuth/src/pkg/ctx"
+	ctx2 "GoAuth/src/pkg/ctx"
 	"GoAuth/src/pkg/utils"
-	"context"
 	"errors"
 	"time"
 )
@@ -20,15 +21,15 @@ var (
 )
 
 type IAuthService interface {
-	Login(ctx context.Context) (interface{}, error)
-	RefreshToken(ctx context.Context) (interface{}, error)
-	Register(ctx context.Context) (models.Model, error)
-	Update(ctx context.Context) (models.Model, error)
-	Profile(ctx context.Context) (models.Model, error)
-	Verify(ctx context.Context) (interface{}, error)
-	Logout(ctx context.Context) error
-	ChangePassword(ctx context.Context) error
-	TokenList(ctx context.Context) ([]models.Model, error)
+	Login(ctx ctx.CTX) (interface{}, error)
+	RefreshToken(ctx ctx.CTX) (interface{}, error)
+	Register(ctx ctx.CTX) (models.Model, error)
+	Update(ctx ctx.CTX) (models.Model, error)
+	Profile(ctx ctx.CTX) (models.Model, error)
+	Verify(ctx ctx.CTX) (interface{}, error)
+	Logout(ctx ctx.CTX) error
+	ChangePassword(ctx ctx.CTX) error
+	TokenList(ctx ctx.CTX) ([]models.Model, error)
 }
 
 type AuthService struct {
@@ -44,11 +45,11 @@ func NewAuthService() *AuthService {
 }
 
 // Login send token and let the user login
-func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
-	req := ctx.Value("req").(*auth.LoginRequest)
+func (service *AuthService) Login(ctx ctx.CTX) (interface{}, error) {
+	req := ctx.Get("req").(*auth.LoginRequest)
 
 	// Get user from with email
-	ctx = context.WithValue(context.Background(), "columns", map[string]any{"email": req.Email})
+	ctx = ctx2.New().SetMap("columns", "email", req.Email)
 	user, err := service.UserService.Get(ctx)
 	if err != nil {
 		return nil, err
@@ -66,8 +67,8 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	}
 
 	// get the number of active token
-	ctx = context.WithValue(context.Background(), "columns", map[string]any{"user_id": userModel.ID})
-	ctx = context.WithValue(ctx, "columns-greater-than", map[string]any{"access_token_expires_at": time.Now()})
+	ctx = ctx2.New().SetMap("columns-greater-than", "access_token_expires_at", time.Now()).
+		SetMap("columns", "user_id", userModel.ID)
 	tokens, err := service.TokenService.ListValidToken(ctx)
 	if err != nil {
 		return nil, err
@@ -90,16 +91,15 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	ctx = context.WithValue(context.Background(), "token", token)
-	ctx = context.WithValue(ctx, "userId", userModel.ID)
+	ctx = ctx2.New().Set("token", token).Set("userId", userModel.ID)
 	go service.createTokenAsync(ctx)
 	return token, nil
 }
 
-func (service *AuthService) RefreshToken(ctx context.Context) (interface{}, error) {
-	req := ctx.Value("req").(*auth.RefreshTokenRequest)
+func (service *AuthService) RefreshToken(ctx ctx.CTX) (interface{}, error) {
+	req := ctx.Get("req").(*auth.RefreshTokenRequest)
 
-	ctx = context.WithValue(context.Background(), "columns", map[string]any{"refresh_token": req.RefreshToken})
+	ctx = ctx2.New().SetMap("columns", "refresh_token", req.RefreshToken)
 	token, err := service.TokenService.Get(ctx)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (service *AuthService) RefreshToken(ctx context.Context) (interface{}, erro
 	}
 
 	// Get user from with email
-	ctx = context.WithValue(context.Background(), "columns", map[string]any{"id": token.(*models.Token).ID})
+	ctx = ctx2.New().SetMap("columns", "id", token.(*models.Token).UserId)
 	user, err := service.UserService.Get(ctx)
 	if err != nil {
 		return nil, err
@@ -119,8 +119,8 @@ func (service *AuthService) RefreshToken(ctx context.Context) (interface{}, erro
 
 	// get the number of active token
 	userModel := user.(*models.User)
-	ctx = context.WithValue(context.Background(), "columns", map[string]any{"user_id": userModel.ID})
-	ctx = context.WithValue(ctx, "columns-greater-than", map[string]any{"access_token_expires_at": time.Now()})
+	ctx = ctx2.New().SetMap("columns-greater-than", "access_token_expires_at", time.Now()).
+		SetMap("columns", "user_id", userModel.ID)
 	tokens, err := service.TokenService.ListValidToken(ctx)
 	if err != nil {
 		return nil, err
@@ -143,38 +143,36 @@ func (service *AuthService) RefreshToken(ctx context.Context) (interface{}, erro
 		return nil, err
 	}
 
-	ctx = context.WithValue(context.Background(), "token", newToken)
-	ctx = context.WithValue(ctx, "userId", userModel.ID)
-
+	ctx = ctx2.New().Set("token", newToken).Set("userId", userModel.ID)
 	// Add token to list of user token
 	go service.createTokenAsync(ctx)
 	return newToken, nil
 }
 
-func (service *AuthService) TokenList(ctx context.Context) ([]models.Model, error) {
-	token := ctx.Value("token").(string)
-	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
+func (service *AuthService) TokenList(ctx ctx.CTX) ([]models.Model, error) {
+	token := ctx.Get("token").(string)
 
+	ctx = ctx2.New().SetMap("columns", "access_token", token)
 	res, err := service.TokenService.Get(ctx)
 	if err != nil {
 		return nil, TokenIsNotExits
 	}
 
-	c := context.WithValue(context.Background(), "columns", map[string]any{"user_id": res.(*models.Token).UserId})
-	return service.TokenService.List(c)
+	ctx = ctx2.New().SetMap("columns", "user_id", res.(*models.Token).UserId)
+	return service.TokenService.List(ctx)
 }
 
-func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
+func (service *AuthService) Register(ctx ctx.CTX) (models.Model, error) {
 	return service.UserService.Create(ctx)
 }
 
-func (service *AuthService) Update(ctx context.Context) (models.Model, error) {
+func (service *AuthService) Update(ctx ctx.CTX) (models.Model, error) {
 	return service.UserService.Update(ctx)
 }
 
-func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
-	token := ctx.Value("token").(string)
-	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
+func (service *AuthService) Profile(ctx ctx.CTX) (models.Model, error) {
+	token := ctx.Get("token").(string)
+	ctx = ctx2.New().SetMap("columns", "access_token", token)
 
 	tokenModel, err := service.TokenService.Get(ctx)
 	if err != nil {
@@ -186,14 +184,14 @@ func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
 		return nil, err
 	}
 
-	ctx = context.WithValue(context.Background(), "columns", map[string]any{"id": tokenModel.(*models.Token).UserId})
+	ctx = ctx2.New().SetMap("columns", "id", tokenModel.(*models.Token).UserId)
 	return service.UserService.Get(ctx)
 }
 
-func (service *AuthService) Verify(ctx context.Context) (interface{}, error) {
-	token := ctx.Value("token").(string)
-	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
+func (service *AuthService) Verify(ctx ctx.CTX) (interface{}, error) {
+	token := ctx.Get("token").(string)
 
+	ctx = ctx2.New().SetMap("columns", "access_token", token)
 	_, err := service.TokenService.Get(ctx)
 	if err != nil {
 		return nil, TokenIsNotExits
@@ -202,17 +200,17 @@ func (service *AuthService) Verify(ctx context.Context) (interface{}, error) {
 	return authenticator.GetInstance().ValidateToken(token)
 }
 
-func (service *AuthService) Logout(ctx context.Context) error {
+func (service *AuthService) Logout(ctx ctx.CTX) error {
 	return service.TokenService.DeleteByColumn(ctx)
 }
 
-func (service *AuthService) ChangePassword(ctx context.Context) error {
+func (service *AuthService) ChangePassword(ctx ctx.CTX) error {
 	user, err := service.Profile(ctx)
 	if err != nil {
 		return err
 	}
 
-	req := ctx.Value("req").(*auth.ChangePasswordRequest)
+	req := ctx.Get("req").(*auth.ChangePasswordRequest)
 	userModel := user.(*models.User)
 
 	ok, err := hash.VerifyStoredHash([]byte(userModel.Password), req.OldPassword)
@@ -224,14 +222,13 @@ func (service *AuthService) ChangePassword(ctx context.Context) error {
 		return PasswordMismatch
 	}
 
-	ctx = context.WithValue(ctx, "user", userModel)
-	ctx = context.WithValue(ctx, "new_password", req.NewPassword)
+	ctx = ctx2.New().Set("user", userModel).Set("new_password", req.NewPassword)
 	_, err = service.UserService.UpdatePassword(ctx)
 	return err
 }
 
 // createTokenAsync handles token creation in a separate goroutine
-func (service *AuthService) createTokenAsync(ctx context.Context) {
+func (service *AuthService) createTokenAsync(ctx ctx.CTX) {
 	for {
 		_, err := service.TokenService.Create(ctx)
 		if err == nil {
