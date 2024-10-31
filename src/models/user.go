@@ -1,7 +1,6 @@
 package models
 
 import (
-	"GoAuth/src/hash"
 	"gorm.io/gorm"
 	"time"
 )
@@ -29,17 +28,4 @@ type User struct {
 
 func (user User) TableName() string {
 	return "users"
-}
-
-// BeforeSave here we hash the User.Password before save
-func (user *User) BeforeSave(tx *gorm.DB) error {
-	if len(user.Password) > 0 {
-		hashedPassword, err := hash.GetInstance().Generate([]byte(user.Password))
-		if err != nil {
-			return err
-		}
-		user.Password = string(hashedPassword)
-	}
-	return nil
-
 }

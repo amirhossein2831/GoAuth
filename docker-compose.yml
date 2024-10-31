@@ -1,7 +1,37 @@
 services:
+  # App
+  app:
+    build:
+      context: .
+      dockerfile: build/docker/app/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    tty: true
+    environment:
+      TZ: ${APP_TZ}
+    networks:
+      - go-auth
+
+  # Nginx
+  # TODO: need to use tls
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_load_balancer.${APP_NAME}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./build/docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - go-auth
+    depends_on:
+      - app
+
   # Postgres
   postgres:
-    image: docker-repo.omaxplatform.com/postgres:alpine
+    image: postgres:alpine
     container_name: postgres.${APP_NAME}
     restart: unless-stopped
     ports:
@@ -13,7 +43,19 @@ services:
       TZ: ${APP_TZ}
     volumes:
       - pg-data:/var/lib/postgresql/data
+    networks:
+      - go-auth
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pg-data:
     external: true
+
+# Networks
+networks:
+  go-auth:
+    driver: bridge

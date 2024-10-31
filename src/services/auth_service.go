@@ -13,14 +13,17 @@ import (
 )
 
 var (
-	AuthenticateFailed = errors.New("authentication failed")
-	PasswordMismatch   = errors.New("password does not match")
-	TokenIsNotExits    = errors.New("token is not exits")
+	AuthenticateFailed  = errors.New("authentication failed")
+	PasswordMismatch    = errors.New("password does not match")
+	TokenIsNotExits     = errors.New("token is not exits")
+	RefreshTokenExpired = errors.New("refresh token expired")
 )
 
 type IAuthService interface {
 	Login(ctx context.Context) (interface{}, error)
+	RefreshToken(ctx context.Context) (interface{}, error)
 	Register(ctx context.Context) (models.Model, error)
+	Update(ctx context.Context) (models.Model, error)
 	Profile(ctx context.Context) (models.Model, error)
 	Verify(ctx context.Context) (interface{}, error)
 	Logout(ctx context.Context) error
@@ -93,6 +96,61 @@ func (service *AuthService) Login(ctx context.Context) (interface{}, error) {
 	return token, nil
 }
 
+func (service *AuthService) RefreshToken(ctx context.Context) (interface{}, error) {
+	req := ctx.Value("req").(*auth.RefreshTokenRequest)
+
+	ctx = context.WithValue(context.Background(), "columns", map[string]any{"refresh_token": req.RefreshToken})
+	token, err := service.TokenService.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the refresh token is still valid
+	if token.(*models.Token).RefreshTokenExpiresAt.Before(time.Now()) {
+		return nil, RefreshTokenExpired
+	}
+
+	// Get user from with email
+	ctx = context.WithValue(context.Background(), "columns", map[string]any{"id": token.(*models.Token).ID})
+	user, err := service.UserService.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// get the number of active token
+	userModel := user.(*models.User)
+	ctx = context.WithValue(context.Background(), "columns", map[string]any{"user_id": userModel.ID})
+	ctx = context.WithValue(ctx, "columns-greater-than", map[string]any{"access_token_expires_at": time.Now()})
+	tokens, err := service.TokenService.ListValidToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// send one of active tokens if user try to get token more that limit number
+	if len(tokens) > authenticator.ActiveTokenNumber() {
+		token := tokens[utils.RandomInRange(0, authenticator.ActiveTokenNumber()-1)].(*models.Token)
+		return dto.TokenDto{
+			AccessTokenString:     token.AccessToken,
+			RefreshTokenString:    token.RefreshToken,
+			AccessTokenExpiresAt:  token.AccessTokenExpiresAt,
+			RefreshTokenExpiresAt: token.RefreshTokenExpiresAt,
+		}, nil
+	}
+
+	// Generate New Token
+	newToken, err := authenticator.GetInstance().GenerateToken(userModel.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx = context.WithValue(context.Background(), "token", newToken)
+	ctx = context.WithValue(ctx, "userId", userModel.ID)
+
+	// Add token to list of user token
+	go service.createTokenAsync(ctx)
+	return newToken, nil
+}
+
 func (service *AuthService) TokenList(ctx context.Context) ([]models.Model, error) {
 	token := ctx.Value("token").(string)
 	ctx = context.WithValue(ctx, "columns", map[string]any{"access_token": token})
@@ -108,6 +166,10 @@ func (service *AuthService) TokenList(ctx context.Context) ([]models.Model, erro
 
 func (service *AuthService) Register(ctx context.Context) (models.Model, error) {
 	return service.UserService.Create(ctx)
+}
+
+func (service *AuthService) Update(ctx context.Context) (models.Model, error) {
+	return service.UserService.Update(ctx)
 }
 
 func (service *AuthService) Profile(ctx context.Context) (models.Model, error) {
